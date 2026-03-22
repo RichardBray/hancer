@@ -13,7 +13,7 @@ export function aberrationFilter(input: string, options: AberrationOptions): Fil
   const scaleFactorInv = (1 - offset).toFixed(6);
 
   const fragment = [
-    `[${input}]format=gbrp,split=3[ab_r_src][ab_g_src][ab_b_src];`,
+    `[${input}]format=gbrp,setsar=1,split=3[ab_r_src][ab_g_src][ab_b_src];`,
     `[ab_r_src]extractplanes=r[ab_r];`,
     `[ab_g_src]extractplanes=g[ab_g];`,
     `[ab_b_src]extractplanes=b[ab_b];`,
