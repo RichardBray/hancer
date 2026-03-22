@@ -1,0 +1,13 @@
+{
+  "lift": 0.1,
+  "crush": 0.08,
+  "fade": 0.25,
+  "shadow-tint": "warm",
+  "highlight-tint": "warm",
+  "halation-intensity": 0.9,
+  "halation-radius": 71,
+  "halation-threshold": 150,
+  "halation-warmth": 0.9,
+  "aberration": 0.6,
+  "weave": 0.5
+}

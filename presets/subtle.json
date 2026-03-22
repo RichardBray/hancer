@@ -1,0 +1,9 @@
+{
+  "lift": 0.02,
+  "crush": 0.02,
+  "fade": 0.08,
+  "halation-intensity": 0.3,
+  "halation-radius": 31,
+  "aberration": 0.1,
+  "weave": 0.15
+}
