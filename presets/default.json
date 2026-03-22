@@ -9,7 +9,7 @@
   "halation-intensity": 0.4,
   "halation-radius": 51,
   "halation-threshold": 180,
-  "halation-warmth": 0.3,
+  "halation-warmth": 0,
   "aberration": 0.3,
   "weave": 0.3
 }
