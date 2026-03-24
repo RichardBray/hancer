@@ -1,9 +1,8 @@
 import type { FilterResult, AberrationOptions } from "../types";
+import { passthrough } from "./utils";
 
 export function aberrationFilter(input: string, options: AberrationOptions): FilterResult {
-  if (!options.enabled) {
-    return { fragment: `[${input}]null[ab_out]`, output: "ab_out" };
-  }
+  if (!options.enabled) return passthrough(input, "ab_out");
 
   const offset = options.amount * 0.02;
 

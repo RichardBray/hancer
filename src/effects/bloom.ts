@@ -1,9 +1,8 @@
 import type { FilterResult, BloomOptions } from "../types";
+import { passthrough } from "./utils";
 
 export function bloomFilter(input: string, options: BloomOptions): FilterResult {
-  if (!options.enabled) {
-    return { fragment: `[${input}]null[bloom_out]`, output: "bloom_out" };
-  }
+  if (!options.enabled) return passthrough(input, "bloom_out");
 
   const { amount, radius } = options;
 

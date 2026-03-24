@@ -188,7 +188,6 @@ export function parseArgs(argv: string[]): ParsedArgs {
           preset = val; break;
         case "--crf": crf = parseNum(val, "--crf", 0, 51); break;
         case "--blend": blend = parseNum(val, "--blend", 0, 1); break;
-        // Color Settings
         case "--exposure": colorSettings.exposure = parseNum(val, "--exposure", -2, 2); break;
         case "--contrast": colorSettings.contrast = parseNum(val, "--contrast", 0, 3); break;
         case "--highlights": colorSettings.highlights = parseNum(val, "--highlights", -1, 1); break;
@@ -198,26 +197,20 @@ export function parseArgs(argv: string[]): ParsedArgs {
         case "--subtractive-sat": colorSettings.subtractiveSat = parseNum(val, "--subtractive-sat", 0, 3); break;
         case "--richness": colorSettings.richness = parseNum(val, "--richness", 0, 3); break;
         case "--bleach-bypass": colorSettings.bleachBypass = parseNum(val, "--bleach-bypass", 0, 1); break;
-        // Halation
         case "--halation-amount": halation.amount = parseNum(val, "--halation-amount", 0, 1); break;
         case "--halation-radius": halation.radius = parseNum(val, "--halation-radius", 1, 100); break;
         case "--halation-saturation": halation.saturation = parseNum(val, "--halation-saturation", 0, 3); break;
         case "--halation-hue": halation.hue = parseNum(val, "--halation-hue", 0, 1); break;
-        // Aberration
         case "--aberration": aberration.amount = parseNum(val, "--aberration", 0, 1); break;
-        // Bloom
         case "--bloom-amount": bloom.amount = parseNum(val, "--bloom-amount", 0, 1); break;
         case "--bloom-radius": bloom.radius = parseNum(val, "--bloom-radius", 1, 100); break;
-        // Grain
         case "--grain-amount": grain.amount = parseNum(val, "--grain-amount", 0, 1); break;
         case "--grain-size": grain.size = parseNum(val, "--grain-size", 0, 5); break;
         case "--grain-softness": grain.softness = parseNum(val, "--grain-softness", 0, 1); break;
         case "--grain-saturation": grain.saturation = parseNum(val, "--grain-saturation", 0, 1); break;
         case "--grain-defocus": grain.imageDefocus = parseNum(val, "--grain-defocus", 0, 5); break;
-        // Vignette
         case "--vignette-amount": vignette.amount = parseNum(val, "--vignette-amount", 0, 1); break;
         case "--vignette-size": vignette.size = parseNum(val, "--vignette-size", 0, 1); break;
-        // Split Tone
         case "--split-tone-mode":
           if (val !== "natural" && val !== "complementary") {
             throw new Error(`--split-tone-mode must be natural or complementary, got ${val}`);
@@ -226,7 +219,6 @@ export function parseArgs(argv: string[]): ParsedArgs {
         case "--split-tone-amount": splitTone.amount = parseNum(val, "--split-tone-amount", 0, 1); break;
         case "--split-tone-hue": splitTone.hueAngle = parseNum(val, "--split-tone-hue", 0, 360); break;
         case "--split-tone-pivot": splitTone.pivot = parseNum(val, "--split-tone-pivot", 0, 1); break;
-        // Camera Shake
         case "--camera-shake-amount": cameraShake.amount = parseNum(val, "--camera-shake-amount", 0, 1); break;
         case "--camera-shake-rate": cameraShake.rate = parseNum(val, "--camera-shake-rate", 0, 2); break;
       }
@@ -282,8 +274,7 @@ async function main() {
     process.exit(0);
   }
 
-  await checkDependency("ffmpeg");
-  await checkDependency("ffprobe");
+  await Promise.all([checkDependency("ffmpeg"), checkDependency("ffprobe")]);
 
   if (!existsSync(parsed.input)) {
     console.error(`Input file not found: ${parsed.input}`);
