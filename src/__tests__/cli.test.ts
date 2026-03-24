@@ -50,6 +50,21 @@ describe("parseArgs", () => {
     expect(result.vignette.amount).toBe(0.4);
   });
 
+  it("parses --preset to load a named preset", () => {
+    const result = parseArgs(["input.mp4", "--preset", "subtle"]);
+    expect(result.halation.amount).toBe(0.1);
+  });
+
+  it("CLI flags override preset values", () => {
+    const result = parseArgs(["input.mp4", "--preset", "subtle", "--aberration", "0.8"]);
+    expect(result.aberration.amount).toBe(0.8);
+  });
+
+  it("parses --encode-preset for FFmpeg speed", () => {
+    const result = parseArgs(["input.mp4", "--encode-preset", "fast"]);
+    expect(result.encodePreset).toBe("fast");
+  });
+
   it("throws on unknown flag", () => {
     expect(() => parseArgs(["input.mp4", "--unknown"])).toThrow();
   });

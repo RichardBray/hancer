@@ -5,7 +5,7 @@ import type { FilmOptions } from "../types";
 const defaults: FilmOptions = {
   input: "test.mp4",
   output: "test_openhanced.mp4",
-  preset: "medium",
+  encodePreset: "medium",
   crf: 18,
   blend: 1,
   colorSettings: {

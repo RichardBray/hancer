@@ -137,7 +137,7 @@ describe("e2e: openhancer", () => {
       "--grain-amount", "0.2",
       "--vignette-amount", "0.4",
       "--camera-shake-amount", "0.3",
-      "--preset", "fast",
+      "--encode-preset", "fast",
       "--crf", "28",
     ]);
     if (exitCode !== 0) console.error("FFmpeg stderr:", stderr);

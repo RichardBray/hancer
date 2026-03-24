@@ -1,10 +1,9 @@
 import { existsSync } from "fs";
 import { probe } from "./probe";
 import { runPipeline } from "./pipeline";
-import type {
-  FilmOptions, ColorSettingsOptions, HalationOptions, AberrationOptions,
-  CameraShakeOptions, BloomOptions, GrainOptions, VignetteOptions, SplitToneOptions,
-} from "./types";
+import { applyPreset } from "./presets";
+import type { PresetData } from "./presets";
+import type { FilmOptions } from "./types";
 import path from "path";
 
 const HELP_TEXT = `
@@ -12,9 +11,12 @@ openhancer <input> [options]
 
   Input/Output:
   --output, -o <path>       Output path (default: <input>_openhanced.<ext>)
-  --preset     <string>     FFmpeg preset: fast/medium/slow (default: medium)
+  --encode-preset <string>  FFmpeg preset: fast/medium/slow (default: medium)
   --crf        <0-51>       Quality — lower is better (default: 18)
   --blend      <0-1>        Global blend with original (default: 1)
+
+  Preset:
+  --preset     <name>       Load a preset file (default: "default")
 
   Color Settings:
   --exposure          <-2 to 2>     Exposure adjustment (default: 0)
@@ -76,7 +78,7 @@ openhancer <input> [options]
 `.trim();
 
 const KNOWN_FLAGS = new Set([
-  "--output", "-o", "--preset", "--crf", "--blend",
+  "--output", "-o", "--preset", "--encode-preset", "--crf", "--blend",
   "--exposure", "--contrast", "--highlights", "--fade",
   "--white-balance", "--tint", "--subtractive-sat", "--richness", "--bleach-bypass",
   "--no-color-settings",
@@ -119,30 +121,11 @@ interface ParsedArgs extends FilmOptions {
 }
 
 export function parseArgs(argv: string[]): ParsedArgs {
-  const colorSettings: ColorSettingsOptions = {
-    enabled: true, exposure: 0, contrast: 1, highlights: 0, fade: 0,
-    whiteBalance: 6500, tint: 0, subtractiveSat: 1, richness: 1, bleachBypass: 0,
-  };
-  const halation: HalationOptions = {
-    enabled: true, amount: 0.25, radius: 4, saturation: 1, hue: 0.5, highlightsOnly: true,
-  };
-  const aberration: AberrationOptions = { enabled: true, amount: 0.3 };
-  const bloom: BloomOptions = { enabled: true, amount: 0.25, radius: 10 };
-  const grain: GrainOptions = {
-    enabled: true, amount: 0.125, size: 0, softness: 0.1, saturation: 0.3, imageDefocus: 1,
-  };
-  const vignette: VignetteOptions = { enabled: true, amount: 0.25, size: 0.25 };
-  const splitTone: SplitToneOptions = {
-    enabled: true, mode: "natural", protectNeutrals: false, amount: 0, hueAngle: 20, pivot: 0.3,
-  };
-  const cameraShake: CameraShakeOptions = { enabled: true, amount: 0.25, rate: 0.5 };
-
   let input = "";
   let output = "";
-  let preset: "fast" | "medium" | "slow" = "medium";
-  let crf = 18;
-  let blend = 1;
   let help = false;
+  let presetName = "default";
+  const overrides: PresetData = {};
 
   let i = 0;
   while (i < argv.length) {
@@ -161,16 +144,16 @@ export function parseArgs(argv: string[]): ParsedArgs {
 
       if (BOOLEAN_FLAGS.has(arg)) {
         switch (arg) {
-          case "--no-color-settings": colorSettings.enabled = false; break;
-          case "--no-halation": halation.enabled = false; break;
-          case "--no-aberration": aberration.enabled = false; break;
-          case "--no-bloom": bloom.enabled = false; break;
-          case "--no-grain": grain.enabled = false; break;
-          case "--no-vignette": vignette.enabled = false; break;
-          case "--no-split-tone": splitTone.enabled = false; break;
-          case "--no-camera-shake": cameraShake.enabled = false; break;
-          case "--halation-highlights-only": halation.highlightsOnly = true; break;
-          case "--split-tone-protect-neutrals": splitTone.protectNeutrals = true; break;
+          case "--no-color-settings": overrides["no-color-settings"] = true; break;
+          case "--no-halation": overrides["no-halation"] = true; break;
+          case "--no-aberration": overrides["no-aberration"] = true; break;
+          case "--no-bloom": overrides["no-bloom"] = true; break;
+          case "--no-grain": overrides["no-grain"] = true; break;
+          case "--no-vignette": overrides["no-vignette"] = true; break;
+          case "--no-split-tone": overrides["no-split-tone"] = true; break;
+          case "--no-camera-shake": overrides["no-camera-shake"] = true; break;
+          case "--halation-highlights-only": overrides["halation-highlights-only"] = true; break;
+          case "--split-tone-protect-neutrals": overrides["split-tone-protect-neutrals"] = true; break;
         }
         i++;
         continue;
@@ -181,46 +164,47 @@ export function parseArgs(argv: string[]): ParsedArgs {
 
       switch (arg) {
         case "--output": case "-o": output = val; break;
-        case "--preset":
+        case "--preset": presetName = val; break;
+        case "--encode-preset":
           if (val !== "fast" && val !== "medium" && val !== "slow") {
-            throw new Error(`--preset must be fast, medium, or slow, got ${val}`);
+            throw new Error(`--encode-preset must be fast, medium, or slow, got ${val}`);
           }
-          preset = val; break;
-        case "--crf": crf = parseNum(val, "--crf", 0, 51); break;
-        case "--blend": blend = parseNum(val, "--blend", 0, 1); break;
-        case "--exposure": colorSettings.exposure = parseNum(val, "--exposure", -2, 2); break;
-        case "--contrast": colorSettings.contrast = parseNum(val, "--contrast", 0, 3); break;
-        case "--highlights": colorSettings.highlights = parseNum(val, "--highlights", -1, 1); break;
-        case "--fade": colorSettings.fade = parseNum(val, "--fade", 0, 1); break;
-        case "--white-balance": colorSettings.whiteBalance = parseNum(val, "--white-balance", 1000, 15000); break;
-        case "--tint": colorSettings.tint = parseNum(val, "--tint", -100, 100); break;
-        case "--subtractive-sat": colorSettings.subtractiveSat = parseNum(val, "--subtractive-sat", 0, 3); break;
-        case "--richness": colorSettings.richness = parseNum(val, "--richness", 0, 3); break;
-        case "--bleach-bypass": colorSettings.bleachBypass = parseNum(val, "--bleach-bypass", 0, 1); break;
-        case "--halation-amount": halation.amount = parseNum(val, "--halation-amount", 0, 1); break;
-        case "--halation-radius": halation.radius = parseNum(val, "--halation-radius", 1, 100); break;
-        case "--halation-saturation": halation.saturation = parseNum(val, "--halation-saturation", 0, 3); break;
-        case "--halation-hue": halation.hue = parseNum(val, "--halation-hue", 0, 1); break;
-        case "--aberration": aberration.amount = parseNum(val, "--aberration", 0, 1); break;
-        case "--bloom-amount": bloom.amount = parseNum(val, "--bloom-amount", 0, 1); break;
-        case "--bloom-radius": bloom.radius = parseNum(val, "--bloom-radius", 1, 100); break;
-        case "--grain-amount": grain.amount = parseNum(val, "--grain-amount", 0, 1); break;
-        case "--grain-size": grain.size = parseNum(val, "--grain-size", 0, 5); break;
-        case "--grain-softness": grain.softness = parseNum(val, "--grain-softness", 0, 1); break;
-        case "--grain-saturation": grain.saturation = parseNum(val, "--grain-saturation", 0, 1); break;
-        case "--grain-defocus": grain.imageDefocus = parseNum(val, "--grain-defocus", 0, 5); break;
-        case "--vignette-amount": vignette.amount = parseNum(val, "--vignette-amount", 0, 1); break;
-        case "--vignette-size": vignette.size = parseNum(val, "--vignette-size", 0, 1); break;
+          overrides["encode-preset"] = val; break;
+        case "--crf": overrides["crf"] = parseNum(val, "--crf", 0, 51); break;
+        case "--blend": overrides["blend"] = parseNum(val, "--blend", 0, 1); break;
+        case "--exposure": overrides["exposure"] = parseNum(val, "--exposure", -2, 2); break;
+        case "--contrast": overrides["contrast"] = parseNum(val, "--contrast", 0, 3); break;
+        case "--highlights": overrides["highlights"] = parseNum(val, "--highlights", -1, 1); break;
+        case "--fade": overrides["fade"] = parseNum(val, "--fade", 0, 1); break;
+        case "--white-balance": overrides["white-balance"] = parseNum(val, "--white-balance", 1000, 15000); break;
+        case "--tint": overrides["tint"] = parseNum(val, "--tint", -100, 100); break;
+        case "--subtractive-sat": overrides["subtractive-sat"] = parseNum(val, "--subtractive-sat", 0, 3); break;
+        case "--richness": overrides["richness"] = parseNum(val, "--richness", 0, 3); break;
+        case "--bleach-bypass": overrides["bleach-bypass"] = parseNum(val, "--bleach-bypass", 0, 1); break;
+        case "--halation-amount": overrides["halation-amount"] = parseNum(val, "--halation-amount", 0, 1); break;
+        case "--halation-radius": overrides["halation-radius"] = parseNum(val, "--halation-radius", 1, 100); break;
+        case "--halation-saturation": overrides["halation-saturation"] = parseNum(val, "--halation-saturation", 0, 3); break;
+        case "--halation-hue": overrides["halation-hue"] = parseNum(val, "--halation-hue", 0, 1); break;
+        case "--aberration": overrides["aberration"] = parseNum(val, "--aberration", 0, 1); break;
+        case "--bloom-amount": overrides["bloom-amount"] = parseNum(val, "--bloom-amount", 0, 1); break;
+        case "--bloom-radius": overrides["bloom-radius"] = parseNum(val, "--bloom-radius", 1, 100); break;
+        case "--grain-amount": overrides["grain-amount"] = parseNum(val, "--grain-amount", 0, 1); break;
+        case "--grain-size": overrides["grain-size"] = parseNum(val, "--grain-size", 0, 5); break;
+        case "--grain-softness": overrides["grain-softness"] = parseNum(val, "--grain-softness", 0, 1); break;
+        case "--grain-saturation": overrides["grain-saturation"] = parseNum(val, "--grain-saturation", 0, 1); break;
+        case "--grain-defocus": overrides["grain-defocus"] = parseNum(val, "--grain-defocus", 0, 5); break;
+        case "--vignette-amount": overrides["vignette-amount"] = parseNum(val, "--vignette-amount", 0, 1); break;
+        case "--vignette-size": overrides["vignette-size"] = parseNum(val, "--vignette-size", 0, 1); break;
         case "--split-tone-mode":
           if (val !== "natural" && val !== "complementary") {
             throw new Error(`--split-tone-mode must be natural or complementary, got ${val}`);
           }
-          splitTone.mode = val; break;
-        case "--split-tone-amount": splitTone.amount = parseNum(val, "--split-tone-amount", 0, 1); break;
-        case "--split-tone-hue": splitTone.hueAngle = parseNum(val, "--split-tone-hue", 0, 360); break;
-        case "--split-tone-pivot": splitTone.pivot = parseNum(val, "--split-tone-pivot", 0, 1); break;
-        case "--camera-shake-amount": cameraShake.amount = parseNum(val, "--camera-shake-amount", 0, 1); break;
-        case "--camera-shake-rate": cameraShake.rate = parseNum(val, "--camera-shake-rate", 0, 2); break;
+          overrides["split-tone-mode"] = val; break;
+        case "--split-tone-amount": overrides["split-tone-amount"] = parseNum(val, "--split-tone-amount", 0, 1); break;
+        case "--split-tone-hue": overrides["split-tone-hue"] = parseNum(val, "--split-tone-hue", 0, 360); break;
+        case "--split-tone-pivot": overrides["split-tone-pivot"] = parseNum(val, "--split-tone-pivot", 0, 1); break;
+        case "--camera-shake-amount": overrides["camera-shake-amount"] = parseNum(val, "--camera-shake-amount", 0, 1); break;
+        case "--camera-shake-rate": overrides["camera-shake-rate"] = parseNum(val, "--camera-shake-rate", 0, 2); break;
       }
       i += 2;
       continue;
@@ -242,9 +226,22 @@ export function parseArgs(argv: string[]): ParsedArgs {
     output = getDefaultOutput(input);
   }
 
+  const effectOpts = applyPreset(presetName, overrides);
+
   return {
-    input, output, preset, crf, blend,
-    colorSettings, halation, aberration, bloom, grain, vignette, splitTone, cameraShake,
+    input,
+    output,
+    encodePreset: effectOpts.encodePreset,
+    crf: effectOpts.crf,
+    blend: effectOpts.blend,
+    colorSettings: effectOpts.colorSettings,
+    halation: effectOpts.halation,
+    aberration: effectOpts.aberration,
+    bloom: effectOpts.bloom,
+    grain: effectOpts.grain,
+    vignette: effectOpts.vignette,
+    splitTone: effectOpts.splitTone,
+    cameraShake: effectOpts.cameraShake,
     help,
   };
 }

@@ -69,7 +69,7 @@ export interface BloomOptions {
 export interface FilmOptions {
   input: string;
   output: string;
-  preset: "fast" | "medium" | "slow";
+  encodePreset: "fast" | "medium" | "slow";
   crf: number;
   blend: number;
   colorSettings: ColorSettingsOptions;
