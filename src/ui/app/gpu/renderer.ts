@@ -9,12 +9,6 @@ export interface PreviewParams {
   [key: string]: string | number | boolean;
 }
 
-interface PassState {
-  pipeline: GPURenderPipeline;
-  uniformBuffer: GPUBuffer;
-  uniformSize: number;
-}
-
 export interface Renderer {
   setSource(source: HTMLVideoElement | HTMLImageElement): void;
   setParams(params: PreviewParams): void;
@@ -22,7 +16,6 @@ export interface Renderer {
   destroy(): void;
 }
 
-// Standard bind group layout: texture + sampler + uniform
 function createStandardLayout(device: GPUDevice): GPUBindGroupLayout {
   return device.createBindGroupLayout({
     entries: [
@@ -33,7 +26,6 @@ function createStandardLayout(device: GPUDevice): GPUBindGroupLayout {
   });
 }
 
-// Screen blend layout: 2 textures + sampler + uniform
 function createBlendLayout(device: GPUDevice): GPUBindGroupLayout {
   return device.createBindGroupLayout({
     entries: [
@@ -72,7 +64,6 @@ export async function createRenderer(canvas: HTMLCanvasElement, width: number, h
   const stdLayout = createStandardLayout(device);
   const blendLayout = createBlendLayout(device);
 
-  // Textures: ping-pong at full res, half-res pair for blurs
   const halfW = Math.max(1, Math.floor(width / 2));
   const halfH = Math.max(1, Math.floor(height / 2));
 
@@ -81,14 +72,12 @@ export async function createRenderer(canvas: HTMLCanvasElement, width: number, h
   const halfA = createTexture(device, halfW, halfH, format);
   const halfB = createTexture(device, halfW, halfH, format);
 
-  // Source texture for video/image frames
   const srcTex = device.createTexture({
     size: { width, height },
     format: "rgba8unorm",
     usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
   });
 
-  // Create all pipelines
   const colorPipeline = createFullscreenPipeline(device, FULLSCREEN_VERT, COLOR_SETTINGS_FRAG, stdLayout, format);
   const thresholdPipeline = createFullscreenPipeline(device, FULLSCREEN_VERT, THRESHOLD_FRAG, stdLayout, format);
   const blurPipeline = createFullscreenPipeline(device, FULLSCREEN_VERT, BLUR_FRAG, stdLayout, format);
@@ -99,7 +88,6 @@ export async function createRenderer(canvas: HTMLCanvasElement, width: number, h
   const splitTonePipeline = createFullscreenPipeline(device, FULLSCREEN_VERT, SPLIT_TONE_FRAG, stdLayout, format);
   const shakePipeline = createFullscreenPipeline(device, FULLSCREEN_VERT, CAMERA_SHAKE_FRAG, stdLayout, format);
 
-  // Uniform buffers (pre-allocated, rewritten each frame)
   const colorUB = createUniformBuffer(device, 32); // 8 floats
   const thresholdUB = createUniformBuffer(device, 16);
   const blurUB1 = createUniformBuffer(device, 16);
@@ -110,7 +98,6 @@ export async function createRenderer(canvas: HTMLCanvasElement, width: number, h
   const vignetteUB = createUniformBuffer(device, 16);
   const splitToneUB = createUniformBuffer(device, 32);
   const shakeUB = createUniformBuffer(device, 16);
-  // Bloom reuses blur pipeline with separate UBs
   const bloomBlurUB1 = createUniformBuffer(device, 16);
   const bloomBlurUB2 = createUniformBuffer(device, 16);
   const bloomBlendUB = createUniformBuffer(device, 16);
@@ -167,8 +154,6 @@ export async function createRenderer(canvas: HTMLCanvasElement, width: number, h
     frameCount++;
 
     const encoder = device.createCommandEncoder();
-    // We'll track which texture holds the current result
-    // Start: srcTex → colorSettings → texA, then alternate A/B
     let current = texA;
     let other = texB;
 
@@ -178,7 +163,6 @@ export async function createRenderer(canvas: HTMLCanvasElement, width: number, h
       other = tmp;
     }
 
-    // --- Color Settings ---
     if (params["no-color-settings"] !== true) {
       const fade = num("fade", 0);
       const contrast = num("contrast", 1) * (1 - fade);
@@ -192,7 +176,6 @@ export async function createRenderer(canvas: HTMLCanvasElement, width: number, h
       const bg = makeStdBindGroup(srcTex, colorUB);
       runPass(encoder, colorPipeline, bg, current.createView());
     } else {
-      // Copy source through
       const bg = makeStdBindGroup(srcTex, colorUB);
       device.queue.writeBuffer(colorUB, 0, new Float32Array([1, 0, 1, 1, 6500, 0, 0, 0]));
       runPass(encoder, colorPipeline, bg, current.createView());

@@ -16,14 +16,11 @@ export function App() {
   }, []);
 
   const handleParamChange = useCallback((key: string, value: number | string | boolean) => {
-    setParams(prev => {
-      const next = { ...prev, [key]: value };
-      if (rendererRef.current) {
-        rendererRef.current.setParams(next);
-        rendererRef.current.renderFrame();
-      }
-      return next;
-    });
+    setParams(prev => ({ ...prev, [key]: value }));
+  }, []);
+
+  const handleBatchChange = useCallback((data: Record<string, string | number | boolean>) => {
+    setParams(prev => ({ ...prev, ...data }));
   }, []);
 
   if (!objectUrl) {
@@ -52,7 +49,7 @@ export function App() {
           />
         </div>
         <div style={{ width: 320, borderLeft: "1px solid #1a1a1a", overflowY: "auto", padding: 16 }}>
-          <ControlsPanel values={params} onChange={handleParamChange} />
+          <ControlsPanel values={params} onChange={handleParamChange} onBatchChange={handleBatchChange} />
           {file && <RenderBar file={file} params={params} />}
         </div>
       </div>

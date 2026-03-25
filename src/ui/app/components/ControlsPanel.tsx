@@ -5,9 +5,10 @@ import type { EffectGroup as EffectGroupType } from "../../../schema";
 interface Props {
   values: Record<string, string | number | boolean>;
   onChange: (key: string, value: string | number | boolean) => void;
+  onBatchChange: (data: Record<string, string | number | boolean>) => void;
 }
 
-export function ControlsPanel({ values, onChange }: Props) {
+export function ControlsPanel({ values, onChange, onBatchChange }: Props) {
   const [schema, setSchema] = useState<EffectGroupType[]>([]);
   const [presets, setPresets] = useState<string[]>([]);
   const [currentPreset, setCurrentPreset] = useState("default");
@@ -23,9 +24,7 @@ export function ControlsPanel({ values, onChange }: Props) {
     fetch(`/api/preset?name=${name}`)
       .then(r => r.json())
       .then(data => {
-        for (const [k, v] of Object.entries(data)) {
-          onChange(k, v as string | number | boolean);
-        }
+        onBatchChange(data as Record<string, string | number | boolean>);
       });
   }
 

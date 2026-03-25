@@ -75,7 +75,6 @@ export function VideoPlayer({ src, isVideo, params, onRendererReady }: Props) {
     };
   }, [src, isVideo]);
 
-  // Update params on the existing renderer without reinitializing
   useEffect(() => {
     if (rendererRef.current) {
       rendererRef.current.setParams(params);
