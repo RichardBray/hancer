@@ -12,5 +12,8 @@ src/__tests__/e2e/fixtures/test.png
 src/__tests__/e2e/fixtures/test.mov
 *_openhanced.*
 
+# UI build output
+src/ui/dist/
+
 # Worktrees
 .worktrees/
