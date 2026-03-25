@@ -1,27 +1,14 @@
 import type { FilterResult, SplitToneOptions } from "../types";
 import { passthrough } from "./utils";
+import { getSplitToneTintValues } from "./splitToneMath";
 
 export function splitToneFilter(input: string, options: SplitToneOptions): FilterResult {
   if (!options.enabled) return passthrough(input, "splittone_out");
 
-  const { mode, protectNeutrals, amount, hueAngle, pivot } = options;
+  const { protectNeutrals, amount } = options;
+  const { shadowR, shadowB, highlightR, highlightB, midR } = getSplitToneTintValues(options);
 
-  const hueRad = (hueAngle * Math.PI) / 180;
-  const cosHue = Math.cos(hueRad);
-  const sinHue = Math.sin(hueRad);
-  const shadowR = (cosHue * amount * 0.3).toFixed(4);
-  const shadowB = (sinHue * amount * 0.3).toFixed(4);
-
-  // Complementary: highlights get opposite hue; natural: same direction, weaker
-  const highlightScale = mode === "complementary" ? 0.3 : 0.15;
-  const cosHL = mode === "complementary" ? -cosHue : cosHue;
-  const sinHL = mode === "complementary" ? -sinHue : sinHue;
-  const highlightR = (cosHL * amount * highlightScale).toFixed(4);
-  const highlightB = (sinHL * amount * highlightScale).toFixed(4);
-
-  const midR = (pivot * -0.1).toFixed(4);
-
-  const colorbalance = `colorbalance=rs=${shadowR}:bs=${shadowB}:rh=${highlightR}:bh=${highlightB}:rm=${midR}`;
+  const colorbalance = `colorbalance=rs=${shadowR.toFixed(4)}:bs=${shadowB.toFixed(4)}:rh=${highlightR.toFixed(4)}:bh=${highlightB.toFixed(4)}:rm=${midR.toFixed(4)}`;
 
   if (protectNeutrals) {
     const fragment = [

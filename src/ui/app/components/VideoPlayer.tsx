@@ -1,5 +1,6 @@
 import { useRef, useEffect } from "react";
 import { createRenderer, type Renderer, type PreviewParams } from "../gpu/renderer";
+import { fitPreviewSize } from "../mediaSizing";
 
 interface Props {
   src: string;
@@ -28,11 +29,17 @@ export function VideoPlayer({ src, isVideo, params, onRendererReady }: Props) {
           video.onloadeddata = () => resolve();
           if (video.readyState >= 2) resolve();
         });
-        const w = Math.min(video.videoWidth, 1920);
-        const h = Math.round((w / video.videoWidth) * video.videoHeight);
+        const sourceWidth = video.videoWidth;
+        const sourceHeight = video.videoHeight;
+        const previewSize = fitPreviewSize(sourceWidth, sourceHeight);
         if (cancelled) return;
 
-        const renderer = await createRenderer(canvas, w, h);
+        const renderer = await createRenderer(canvas, {
+          sourceWidth,
+          sourceHeight,
+          previewWidth: previewSize.width,
+          previewHeight: previewSize.height,
+        });
         renderer.setSource(video);
         renderer.setParams(params);
         rendererRef.current = renderer;
@@ -52,11 +59,17 @@ export function VideoPlayer({ src, isVideo, params, onRendererReady }: Props) {
           img.onload = () => resolve();
           if (img.complete) resolve();
         });
-        const w = Math.min(img.naturalWidth, 1920);
-        const h = Math.round((w / img.naturalWidth) * img.naturalHeight);
+        const sourceWidth = img.naturalWidth;
+        const sourceHeight = img.naturalHeight;
+        const previewSize = fitPreviewSize(sourceWidth, sourceHeight);
         if (cancelled) return;
 
-        const renderer = await createRenderer(canvas, w, h);
+        const renderer = await createRenderer(canvas, {
+          sourceWidth,
+          sourceHeight,
+          previewWidth: previewSize.width,
+          previewHeight: previewSize.height,
+        });
         renderer.setSource(img);
         renderer.setParams(params);
         renderer.renderFrame();

@@ -1,10 +1,10 @@
-import { existsSync } from "fs";
+import { existsSync } from "node:fs";
 import { probe } from "./probe";
 import { runPipeline } from "./pipeline";
 import { applyPreset } from "./presets";
 import type { PresetData } from "./presets";
 import type { FilmOptions } from "./types";
-import path from "path";
+import path from "node:path";
 
 const HELP_TEXT = `
 openhancer <input> [options]

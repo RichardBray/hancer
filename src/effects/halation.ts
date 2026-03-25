@@ -14,10 +14,12 @@ export function halationFilter(input: string, options: HalationOptions): FilterR
   steps.push(`[${input}]split=2[hal_orig][hal_glowsrc]`);
 
   if (highlightsOnly) {
-    steps.push(`[hal_glowsrc]curves=r='0/0 0.65/0 0.75/1 1/1':g='0/0 0.65/0 0.75/1 1/1':b='0/0 0.65/0 0.75/1 1/1'[hal_highlights]`);
-    steps.push(`[hal_highlights]hue=h=${hueDeg}:s=${saturation.toFixed(4)},gblur=sigma=${sigma}[hal_blurred]`);
+    // Wider, softer highlight ramp to match WebGPU smoothstep threshold
+    steps.push(`[hal_glowsrc]curves=r='0/0 0.5/0 0.85/1 1/1':g='0/0 0.5/0 0.85/1 1/1':b='0/0 0.5/0 0.85/1 1/1'[hal_highlights]`);
+    // Downsample → blur → upsample → hue shift (matches WebGPU: blur first, color shift after)
+    steps.push(`[hal_highlights]scale=iw/2:ih/2,gblur=sigma=${sigma},scale=iw*2:ih*2,hue=h=${hueDeg}:s=${saturation.toFixed(4)}[hal_blurred]`);
   } else {
-    steps.push(`[hal_glowsrc]hue=h=${hueDeg}:s=${saturation.toFixed(4)},gblur=sigma=${sigma}[hal_blurred]`);
+    steps.push(`[hal_glowsrc]scale=iw/2:ih/2,gblur=sigma=${sigma},scale=iw*2:ih*2,hue=h=${hueDeg}:s=${saturation.toFixed(4)}[hal_blurred]`);
   }
 
   steps.push(`[hal_orig][hal_blurred]blend=all_mode=screen:all_opacity=${amount.toFixed(4)}[halation_out]`);

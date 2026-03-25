@@ -4,6 +4,7 @@ import {
   SPLIT_TONE_FRAG, CAMERA_SHAKE_FRAG,
 } from "./shaders";
 import { createFullscreenPipeline, createTexture, runPass } from "./passes";
+import { getSplitToneTintValues } from "../../../effects/splitToneMath";
 
 export interface PreviewParams {
   [key: string]: string | number | boolean;
@@ -14,6 +15,13 @@ export interface Renderer {
   setParams(params: PreviewParams): void;
   renderFrame(): void;
   destroy(): void;
+}
+
+export interface RendererInit {
+  sourceWidth: number;
+  sourceHeight: number;
+  previewWidth: number;
+  previewHeight: number;
 }
 
 function createStandardLayout(device: GPUDevice): GPUBindGroupLayout {
@@ -48,7 +56,8 @@ function createUniformBuffer(device: GPUDevice, size: number): GPUBuffer {
   });
 }
 
-export async function createRenderer(canvas: HTMLCanvasElement, width: number, height: number): Promise<Renderer> {
+export async function createRenderer(canvas: HTMLCanvasElement, init: RendererInit): Promise<Renderer> {
+  const { sourceWidth, sourceHeight, previewWidth, previewHeight } = init;
   const adapter = await navigator.gpu.requestAdapter();
   if (!adapter) throw new Error("No WebGPU adapter found");
   const device = await adapter.requestDevice();
@@ -57,23 +66,23 @@ export async function createRenderer(canvas: HTMLCanvasElement, width: number, h
   const ctx = canvas.getContext("webgpu")!;
   ctx.configure({ device, format, alphaMode: "opaque" });
 
-  canvas.width = width;
-  canvas.height = height;
+  canvas.width = previewWidth;
+  canvas.height = previewHeight;
 
   const sampler = device.createSampler({ magFilter: "linear", minFilter: "linear" });
   const stdLayout = createStandardLayout(device);
   const blendLayout = createBlendLayout(device);
 
-  const halfW = Math.max(1, Math.floor(width / 2));
-  const halfH = Math.max(1, Math.floor(height / 2));
+  const halfW = Math.max(1, Math.floor(previewWidth / 2));
+  const halfH = Math.max(1, Math.floor(previewHeight / 2));
 
-  const texA = createTexture(device, width, height, format);
-  const texB = createTexture(device, width, height, format);
+  const texA = createTexture(device, previewWidth, previewHeight, format);
+  const texB = createTexture(device, previewWidth, previewHeight, format);
   const halfA = createTexture(device, halfW, halfH, format);
   const halfB = createTexture(device, halfW, halfH, format);
 
   const srcTex = device.createTexture({
-    size: { width, height },
+    size: { width: sourceWidth, height: sourceHeight },
     format: "rgba8unorm",
     usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
   });
@@ -134,7 +143,7 @@ export async function createRenderer(canvas: HTMLCanvasElement, width: number, h
     device.queue.copyExternalImageToTexture(
       { source: source as HTMLVideoElement | HTMLImageElement },
       { texture: srcTex },
-      { width, height },
+      { width: sourceWidth, height: sourceHeight },
     );
   }
 
@@ -242,10 +251,10 @@ export async function createRenderer(canvas: HTMLCanvasElement, width: number, h
         const radius = num("bloom-radius", 10);
         const preBloom = current;
 
-        // Threshold → halfA
-        device.queue.writeBuffer(thresholdUB, 0, new Float32Array([0.5, 0.7, 0, 0]));
-        const threshBG = makeStdBindGroup(current, thresholdUB);
-        runPass(encoder, thresholdPipeline, threshBG, halfA.createView());
+        // FFmpeg bloom blurs the full frame, so downsample without thresholding first.
+        device.queue.writeBuffer(blurUB1, 0, new Float32Array([0, 0, 0.001, 0]));
+        const downsampleBG = makeStdBindGroup(current, blurUB1);
+        runPass(encoder, blurPipeline, downsampleBG, halfA.createView());
 
         // H-blur → halfB
         const sigma = radius * 0.5;
@@ -277,8 +286,8 @@ export async function createRenderer(canvas: HTMLCanvasElement, width: number, h
           num("grain-saturation", 0.3),
           num("grain-defocus", 1),
           frameCount,
-          1.0 / width,
-          1.0 / height,
+          1.0 / previewWidth,
+          1.0 / previewHeight,
         ]));
         const bg = makeStdBindGroup(current, grainUB);
         runPass(encoder, grainPipeline, bg, other.createView());
@@ -307,14 +316,12 @@ export async function createRenderer(canvas: HTMLCanvasElement, width: number, h
         const pivot = num("split-tone-pivot", 0.3);
         const mode = params["split-tone-mode"] || "natural";
         const protect = params["split-tone-protect-neutrals"] === true ? 1 : 0;
-
-        // Convert hue angle to RGB tint values (simplified)
-        const hueRad = (hue * Math.PI) / 180;
-        const shadowR = Math.cos(hueRad) * amount * 0.1;
-        const shadowB = Math.sin(hueRad) * amount * 0.1;
-        const highlightR = mode === "complementary" ? -shadowR : shadowR * 0.5;
-        const highlightB = mode === "complementary" ? -shadowB : shadowB * 0.3;
-        const midR = (pivot - 0.3) * amount * 0.05;
+        const { shadowR, shadowB, highlightR, highlightB, midR } = getSplitToneTintValues({
+          amount,
+          hueAngle: hue,
+          mode: typeof mode === "string" && mode === "complementary" ? "complementary" : "natural",
+          pivot,
+        });
 
         device.queue.writeBuffer(splitToneUB, 0, new Float32Array([
           shadowR, shadowB, highlightR, highlightB, midR, amount, protect, 0,
@@ -330,7 +337,7 @@ export async function createRenderer(canvas: HTMLCanvasElement, width: number, h
       const amount = num("camera-shake-amount", 0.25);
       if (amount > 0) {
         const rate = num("camera-shake-rate", 0.5);
-        const amplitude = (amount * 3) / width; // normalize to UV space
+        const amplitude = (amount * 3) / previewWidth; // normalize to UV space
         const period1 = Math.max(1, 30 / (rate + 0.01));
         const period2 = period1 * 1.3;
         device.queue.writeBuffer(shakeUB, 0, new Float32Array([amplitude, period1, period2, frameCount]));
