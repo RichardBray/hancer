@@ -1,4 +1,7 @@
 import { type Page } from "@playwright/test";
+import { join } from "node:path";
+
+export const TEST_IMAGE = join(import.meta.dirname, "..", "src", "__tests__", "e2e", "fixtures", "test.png");
 
 export async function uploadTestImage(page: Page, fixturePath: string) {
   const [fileChooser] = await Promise.all([

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import type { EffectGroup as EffectGroupType, OptionDef } from "../../../schema";
 
 interface Props {
@@ -59,7 +58,7 @@ function OptionControl({ opt, value, onChange }: { opt: OptionDef; value: string
 }
 
 export function EffectGroup({ group, values, onChange }: Props) {
-  const [enabled, setEnabled] = useState(true);
+  const enabled = values[group.enableKey] !== true;
 
   return (
     <div style={{ marginBottom: 16 }}>
@@ -69,7 +68,6 @@ export function EffectGroup({ group, values, onChange }: Props) {
           type="checkbox"
           checked={enabled}
           onChange={e => {
-            setEnabled(e.target.checked);
             onChange(group.enableKey, !e.target.checked);
           }}
         />

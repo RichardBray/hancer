@@ -1,8 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { uploadTestImage, waitForCanvas } from "./helpers";
-import { join } from "node:path";
-
-const TEST_IMAGE = join(import.meta.dirname, "..", "src", "__tests__", "e2e", "fixtures", "test.png");
+import { uploadTestImage, waitForCanvas, TEST_IMAGE } from "./helpers";
 
 test.describe("Controls panel", () => {
   test.beforeEach(async ({ page }) => {
