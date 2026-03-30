@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { useUpload } from "./hooks/useUpload";
 import { UploadPanel } from "./components/UploadPanel";
 import { VideoPlayer } from "./components/VideoPlayer";
@@ -9,15 +9,15 @@ import type { Renderer, PreviewParams } from "./gpu/renderer";
 export function App() {
   const { file, objectUrl, isVideo, upload } = useUpload();
   const [params, setParams] = useState<PreviewParams>({});
-  const rendererRef = useRef<Renderer | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [renderer, setRenderer] = useState<Renderer | null>(null);
+  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
 
-  const handleRendererReady = useCallback((renderer: Renderer) => {
-    rendererRef.current = renderer;
+  const handleRendererReady = useCallback((r: Renderer) => {
+    setRenderer(r);
   }, []);
 
   const handleCanvasReady = useCallback((canvas: HTMLCanvasElement) => {
-    canvasRef.current = canvas;
+    setCanvas(canvas);
   }, []);
 
   const handleParamChange = useCallback((key: string, value: number | string | boolean) => {
@@ -56,7 +56,7 @@ export function App() {
         </div>
         <div style={{ width: 320, borderLeft: "1px solid #1a1a1a", overflowY: "auto", padding: 16 }}>
           <ControlsPanel values={params} onChange={handleParamChange} onBatchChange={handleBatchChange} />
-          {file && <RenderBar file={file} params={params} canvas={canvasRef.current} isVideo={isVideo} />}
+          {file && <RenderBar file={file} params={params} canvas={canvas} renderer={renderer} isVideo={isVideo} />}
         </div>
       </div>
     </div>

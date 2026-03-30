@@ -1,32 +1,41 @@
 import { useState, useCallback } from "react";
+import type { Renderer } from "../gpu/renderer";
 
 interface Props {
   file: File;
   params: Record<string, string | number | boolean>;
   canvas: HTMLCanvasElement | null;
+  renderer: Renderer | null;
   isVideo: boolean;
 }
 
 type ExportState = "idle" | "uploading" | "rendering" | "done" | "error";
 
-export function RenderBar({ file, params, canvas, isVideo }: Props) {
+export function RenderBar({ file, params, canvas, renderer, isVideo }: Props) {
   const [state, setState] = useState<ExportState>("idle");
   const [progress, setProgress] = useState(0);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const downloadImage = useCallback(() => {
-    if (!canvas) return;
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = file.name.replace(/\.[^.]+$/, "_openhanced.png");
-      a.click();
-      URL.revokeObjectURL(url);
-    }, "image/png");
-  }, [canvas, file.name]);
+  const downloadImage = useCallback(async () => {
+    if (!renderer || !canvas) return;
+    const rgba = await renderer.readPixels();
+    if (rgba.length === 0) return;
+    // Encode RGBA to PNG via an offscreen canvas
+    const w = canvas.width;
+    const h = canvas.height;
+    const offscreen = new OffscreenCanvas(w, h);
+    const ctx = offscreen.getContext("2d")!;
+    const imageData = new ImageData(new Uint8ClampedArray(rgba.buffer), w, h);
+    ctx.putImageData(imageData, 0, 0);
+    const blob = await offscreen.convertToBlob({ type: "image/png" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file.name.replace(/\.[^.]+$/, "_openhanced.png");
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [renderer, canvas, file.name]);
 
   const startExport = useCallback(async () => {
     setState("uploading");

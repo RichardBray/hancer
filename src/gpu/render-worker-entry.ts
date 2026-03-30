@@ -29,14 +29,8 @@ window.__renderFrame = async function (
 };
 
 window.__readPixels = async function (): Promise<Uint8Array> {
-  if (!canvas) throw new Error("Canvas not initialized");
-  return new Promise((resolve, reject) => {
-    canvas!.toBlob(async (blob) => {
-      if (!blob) return reject(new Error("toBlob returned null"));
-      const buf = await blob.arrayBuffer();
-      resolve(new Uint8Array(buf));
-    }, "image/png");
-  });
+  if (!renderer) throw new Error("Renderer not initialized");
+  return renderer.readPixels();
 };
 
 window.__destroy = function (): void {

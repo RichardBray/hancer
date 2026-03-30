@@ -15,6 +15,7 @@ export interface Renderer {
   setSourceFromBuffer(data: Uint8Array, width: number, height: number): void;
   setParams(params: PreviewParams): void;
   renderFrame(): void;
+  readPixels(): Promise<Uint8Array>;
   destroy(): void;
 }
 
@@ -362,6 +363,9 @@ export async function createRenderer(canvas: HTMLCanvasElement, init: RendererIn
       }
     }
 
+    // Track the last rendered output for readPixels
+    lastOutputTex = current;
+
     // Final: copy current to canvas
     // We need one more pass to output to the canvas texture
     // Use a simple passthrough via color settings with neutral params
@@ -370,6 +374,59 @@ export async function createRenderer(canvas: HTMLCanvasElement, init: RendererIn
     runPass(encoder, colorPipeline, finalBG, ctx.getCurrentTexture().createView());
 
     device.queue.submit([encoder.finish()]);
+  }
+
+  let lastOutputTex: GPUTexture = texA;
+
+  async function readPixels(): Promise<Uint8Array> {
+    // Re-render to ensure textures are fresh, then read from the last output texture
+    renderFrame();
+
+    const encoder = device.createCommandEncoder();
+
+    const bytesPerRow = Math.ceil(previewWidth * 4 / 256) * 256;
+    const readBuf = device.createBuffer({
+      size: bytesPerRow * previewHeight,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+    });
+
+    encoder.copyTextureToBuffer(
+      { texture: lastOutputTex },
+      { buffer: readBuf, bytesPerRow, rowsPerImage: previewHeight },
+      { width: previewWidth, height: previewHeight },
+    );
+
+    device.queue.submit([encoder.finish()]);
+
+    await readBuf.mapAsync(GPUMapMode.READ);
+    const mapped = new Uint8Array(readBuf.getMappedRange());
+
+    const result = new Uint8Array(previewWidth * previewHeight * 4);
+    const isBGRA = format === "bgra8unorm";
+    for (let y = 0; y < previewHeight; y++) {
+      const srcOffset = y * bytesPerRow;
+      const dstOffset = y * previewWidth * 4;
+      for (let x = 0; x < previewWidth; x++) {
+        const s = srcOffset + x * 4;
+        const d = dstOffset + x * 4;
+        if (isBGRA) {
+          result[d]     = mapped[s + 2]; // R <- B
+          result[d + 1] = mapped[s + 1]; // G
+          result[d + 2] = mapped[s];     // B <- R
+          result[d + 3] = mapped[s + 3]; // A
+        } else {
+          result[d]     = mapped[s];
+          result[d + 1] = mapped[s + 1];
+          result[d + 2] = mapped[s + 2];
+          result[d + 3] = mapped[s + 3];
+        }
+      }
+    }
+
+    readBuf.unmap();
+    readBuf.destroy();
+
+    return result;
   }
 
   return {
@@ -382,6 +439,7 @@ export async function createRenderer(canvas: HTMLCanvasElement, init: RendererIn
       params = p;
     },
     renderFrame,
+    readPixels,
     destroy() {
       texA.destroy();
       texB.destroy();

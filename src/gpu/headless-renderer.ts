@@ -49,8 +49,8 @@ class HeadlessRendererImpl implements HeadlessRenderer {
       { data: Array.from(rgba), w: width, h: height, p: params }
     );
 
-    const pngArray = await this.page.evaluate(() => window.__readPixels());
-    return new Uint8Array(pngArray as unknown as number[]);
+    const pixelArray = await this.page.evaluate(() => window.__readPixels());
+    return new Uint8Array(pixelArray as unknown as number[]);
   }
 
   async close(): Promise<void> {
@@ -59,17 +59,7 @@ class HeadlessRendererImpl implements HeadlessRenderer {
   }
 }
 
-export async function createHeadlessRenderer(): Promise<HeadlessRenderer> {
-  const browser = await chromium.launch({
-    args: ["--enable-unsafe-webgpu", "--enable-features=Vulkan"],
-  });
-
-  const page = await browser.newPage();
-
-  // Load a bare HTML page with just the canvas element.
-  // We can't use `file://` with `<script type="module" src="...">` due to CORS
-  // restrictions in Chromium. Instead, set the page content directly and inject
-  // the built script via addScriptTag (which bypasses the file:// CORS issue).
+async function setupPage(page: Page): Promise<void> {
   await page.setContent(`<!DOCTYPE html>
 <html><head><meta charset="UTF-8"></head>
 <body><canvas id="c"></canvas></body>
@@ -78,10 +68,17 @@ export async function createHeadlessRenderer(): Promise<HeadlessRenderer> {
   const scriptPath = join(import.meta.dir, "dist", "render-worker-entry.js");
   await page.addScriptTag({ path: scriptPath });
 
-  // Wait for the script to register the window functions
   await page.waitForFunction(() => typeof window.__initRenderer === "function", {
     timeout: 10000,
   });
+}
 
+export async function createHeadlessRenderer(): Promise<HeadlessRenderer> {
+  const browser = await chromium.launch({
+    args: ["--enable-unsafe-webgpu", "--enable-features=Vulkan"],
+  });
+
+  const page = await browser.newPage();
+  await setupPage(page);
   return new HeadlessRendererImpl(browser, page);
 }

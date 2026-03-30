@@ -314,7 +314,22 @@ async function main() {
       const rawBytes = new Uint8Array(await new Response(decodeProc.stdout).arrayBuffer());
       await decodeProc.exited;
       const rendered = await renderer.renderFrame(rawBytes, probeResult.width!, probeResult.height!, parsed.params);
-      await Bun.write(parsed.output, rendered);
+      // Encode raw RGBA to output format via FFmpeg
+      const encodeProc = Bun.spawn([
+        "ffmpeg", "-y",
+        "-f", "rawvideo", "-pix_fmt", "rgba",
+        "-s", `${probeResult.width}x${probeResult.height}`,
+        "-i", "pipe:0",
+        "-v", "quiet",
+        parsed.output,
+      ], { stdin: "pipe", stdout: "pipe", stderr: "pipe" });
+      encodeProc.stdin.write(rendered);
+      encodeProc.stdin.end();
+      const encodeExit = await encodeProc.exited;
+      if (encodeExit !== 0) {
+        const stderr = await new Response(encodeProc.stderr).text();
+        throw new Error(`FFmpeg encode failed: ${stderr.trim()}`);
+      }
     } finally {
       await renderer.close();
     }

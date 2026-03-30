@@ -30,7 +30,7 @@ export function createTexture(device: GPUDevice, width: number, height: number, 
   return device.createTexture({
     size: { width, height },
     format,
-    usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_DST,
+    usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_DST | GPUTextureUsage.COPY_SRC,
   });
 }
 
