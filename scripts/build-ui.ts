@@ -6,6 +6,7 @@ const result = await Bun.build({
   outdir: join(import.meta.dir, "..", "src", "ui", "dist"),
   minify: true,
   target: "browser",
+  loader: { ".wgsl": "text" },
   define: {
     "process.env.NODE_ENV": '"production"',
   },
@@ -31,6 +32,7 @@ const workerResult = await Bun.build({
   outdir: join(import.meta.dir, "..", "src", "gpu", "dist"),
   minify: true,
   target: "browser",
+  loader: { ".wgsl": "text" },
   define: {
     "process.env.NODE_ENV": '"production"',
   },
