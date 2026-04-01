@@ -1,7 +1,7 @@
 import { join } from "node:path";
 
 export interface HeadlessRenderer {
-  init(width: number, height: number): Promise<void>;
+  init(width: number, height: number, params?: Record<string, unknown>): Promise<void>;
   renderFrame(
     rgba: Uint8Array,
     width: number,
@@ -37,7 +37,7 @@ export async function createHeadlessRenderer(): Promise<HeadlessRenderer> {
     return result;
   }
 
-  async function init(width: number, height: number): Promise<void> {
+  async function init(width: number, height: number, params: Record<string, unknown> = {}): Promise<void> {
     frameSize = width * height * 4;
 
     proc = Bun.spawn([sidecarPath()], {
@@ -49,7 +49,7 @@ export async function createHeadlessRenderer(): Promise<HeadlessRenderer> {
     reader = proc.stdout.getReader();
 
     // Send init message: 4-byte LE length + JSON
-    const initMsg = JSON.stringify({ width, height, params: {} });
+    const initMsg = JSON.stringify({ width, height, params });
     const initBytes = new TextEncoder().encode(initMsg);
     const lenBuf = new Uint8Array(4);
     new DataView(lenBuf.buffer).setUint32(0, initBytes.length, true);

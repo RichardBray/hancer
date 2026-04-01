@@ -1,5 +1,5 @@
 import type { ProbeResult } from "./types";
-import { createHeadlessRenderer } from "./gpu/headless-renderer";
+import { createHeadlessRenderer } from "./gpu/wgpu-renderer";
 
 export async function runGpuExport(
   input: string,
@@ -27,7 +27,8 @@ export async function runGpuExport(
   // Spawn FFmpeg encoder: PNG frames from stdin, copy audio from original
   const encoder = Bun.spawn([
     "ffmpeg", "-y",
-    "-f", "image2pipe", "-framerate", `${fps}`,
+    "-f", "rawvideo", "-pix_fmt", "rgba",
+    "-s", `${width}x${height}`, "-r", `${fps}`,
     "-i", "pipe:0",
     "-i", input,
     "-map", "0:v", "-map", "1:a?",
@@ -39,7 +40,7 @@ export async function runGpuExport(
 
   // Create headless renderer
   const renderer = await createHeadlessRenderer();
-  await renderer.init(width, height);
+  await renderer.init(width, height, params);
 
   // Process frames
   const reader = decoder.stdout.getReader();

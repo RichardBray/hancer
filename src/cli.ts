@@ -300,10 +300,10 @@ async function main() {
 
   if (probeResult.isImage) {
     process.stdout.write("Processing...\n");
-    const { createHeadlessRenderer } = await import("./gpu/headless-renderer");
+    const { createHeadlessRenderer } = await import("./gpu/wgpu-renderer");
     const renderer = await createHeadlessRenderer();
     try {
-      await renderer.init(probeResult.width!, probeResult.height!);
+      await renderer.init(probeResult.width!, probeResult.height!, parsed.params);
       const decodeProc = Bun.spawn([
         "ffmpeg", "-i", parsed.input,
         "-f", "rawvideo", "-pix_fmt", "rgba",

@@ -1,10 +1,11 @@
 import { describe, it, expect } from "bun:test";
-import { createHeadlessRenderer } from "../../gpu/headless-renderer";
+import { createHeadlessRenderer } from "../../gpu/wgpu-renderer";
 
 describe("GPU export parity", () => {
   it("renders identical output for same input and params", async () => {
     const renderer = await createHeadlessRenderer();
-    await renderer.init(100, 100);
+    const params = { "halation-amount": 0.3, "halation-radius": 10, "no-grain": true, "no-camera-shake": true };
+    await renderer.init(100, 100, params);
 
     // Create a test frame (gradient)
     const rgba = new Uint8Array(100 * 100 * 4);
@@ -14,8 +15,6 @@ describe("GPU export parity", () => {
       rgba[i * 4 + 2] = 128;               // B constant
       rgba[i * 4 + 3] = 255;               // A
     }
-
-    const params = { "halation-amount": 0.3, "halation-radius": 10 };
 
     // Render twice with same input
     const result1 = await renderer.renderFrame(rgba, 100, 100, params);

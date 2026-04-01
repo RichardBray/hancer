@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from "bun:test";
 import {
   createHeadlessRenderer,
   type HeadlessRenderer,
-} from "../../gpu/headless-renderer";
+} from "../../gpu/wgpu-renderer";
 
 describe("HeadlessRenderer", () => {
   let renderer: HeadlessRenderer;
@@ -26,6 +26,6 @@ describe("HeadlessRenderer", () => {
     ]);
     const result = await renderer.renderFrame(rgba, 2, 2, {});
     expect(result).toBeInstanceOf(Uint8Array);
-    expect(result.length).toBeGreaterThan(0); // PNG bytes, not raw RGBA
+    expect(result.length).toBe(2 * 2 * 4); // Raw RGBA output
   });
 });
