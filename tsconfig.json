@@ -6,9 +6,7 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "outDir": "dist",
-    "rootDir": "src",
-    "types": ["bun-types"]
-  },
-  "include": ["src"]
+    "types": ["bun-types"],
+    "jsx": "react-jsx"
+  }
 }
