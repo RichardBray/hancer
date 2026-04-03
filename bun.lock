@@ -4,18 +4,43 @@
   "workspaces": {
     "": {
       "name": "openhancer",
+      "devDependencies": {
+        "@types/bun": "^1.3.11",
+      },
+    },
+    "packages/cli": {
+      "name": "@hancer/cli",
+      "version": "1.0.0",
       "dependencies": {
+        "@hancer/core": "workspace:*",
+      },
+    },
+    "packages/core": {
+      "name": "@hancer/core",
+      "version": "1.0.0",
+    },
+    "packages/ui": {
+      "name": "@hancer/ui",
+      "version": "1.0.0",
+      "dependencies": {
+        "@hancer/cli": "workspace:*",
+        "@hancer/core": "workspace:*",
         "react": "^19.2.4",
         "react-dom": "^19.2.4",
       },
       "devDependencies": {
-        "@types/bun": "^1.3.11",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
       },
     },
   },
   "packages": {
+    "@hancer/cli": ["@hancer/cli@workspace:packages/cli"],
+
+    "@hancer/core": ["@hancer/core@workspace:packages/core"],
+
+    "@hancer/ui": ["@hancer/ui@workspace:packages/ui"],
+
     "@types/bun": ["@types/bun@1.3.11", "", { "dependencies": { "bun-types": "1.3.11" } }, "sha512-5vPne5QvtpjGpsGYXiFyycfpDF2ECyPcTSsFBMa0fraoxiQyMJ3SmuQIGhzPg2WJuWxVBoxWJ2kClYTcw/4fAg=="],
 
     "@types/node": ["@types/node@25.5.0", "", { "dependencies": { "undici-types": "~7.18.0" } }, "sha512-jp2P3tQMSxWugkCUKLRPVUpGaL5MVFwF8RDuSRztfwgN1wmqJeMSbKlnEtQqU8UrhTmzEmZdu2I6v2dpp7XIxw=="],
