@@ -4,16 +4,16 @@ use wgpu::*;
 use crate::params::Params;
 use crate::passes;
 
-const VERT: &str = include_str!("../../src/shaders/fullscreen.vert.wgsl");
-const COLOR_FRAG: &str = include_str!("../../src/shaders/color-settings.frag.wgsl");
-const THRESHOLD_FRAG: &str = include_str!("../../src/shaders/threshold.frag.wgsl");
-const BLUR_FRAG: &str = include_str!("../../src/shaders/blur.frag.wgsl");
-const BLEND_FRAG: &str = include_str!("../../src/shaders/screen-blend.frag.wgsl");
-const ABERRATION_FRAG: &str = include_str!("../../src/shaders/aberration.frag.wgsl");
-const GRAIN_FRAG: &str = include_str!("../../src/shaders/grain.frag.wgsl");
-const VIGNETTE_FRAG: &str = include_str!("../../src/shaders/vignette.frag.wgsl");
-const SPLIT_TONE_FRAG: &str = include_str!("../../src/shaders/split-tone.frag.wgsl");
-const SHAKE_FRAG: &str = include_str!("../../src/shaders/camera-shake.frag.wgsl");
+const VERT: &str = include_str!("../../core/shaders/fullscreen.vert.wgsl");
+const COLOR_FRAG: &str = include_str!("../../core/shaders/color-settings.frag.wgsl");
+const THRESHOLD_FRAG: &str = include_str!("../../core/shaders/threshold.frag.wgsl");
+const BLUR_FRAG: &str = include_str!("../../core/shaders/blur.frag.wgsl");
+const BLEND_FRAG: &str = include_str!("../../core/shaders/screen-blend.frag.wgsl");
+const ABERRATION_FRAG: &str = include_str!("../../core/shaders/aberration.frag.wgsl");
+const GRAIN_FRAG: &str = include_str!("../../core/shaders/grain.frag.wgsl");
+const VIGNETTE_FRAG: &str = include_str!("../../core/shaders/vignette.frag.wgsl");
+const SPLIT_TONE_FRAG: &str = include_str!("../../core/shaders/split-tone.frag.wgsl");
+const SHAKE_FRAG: &str = include_str!("../../core/shaders/camera-shake.frag.wgsl");
 
 const FORMAT: TextureFormat = TextureFormat::Rgba8Unorm;
 
