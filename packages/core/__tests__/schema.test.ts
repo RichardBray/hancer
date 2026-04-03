@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { EFFECT_SCHEMA, getDefaults } from "../schema";
+import { EFFECT_SCHEMA, getDefaults } from "../src/schema";
 
 describe("EFFECT_SCHEMA", () => {
   test("every option has required fields", () => {

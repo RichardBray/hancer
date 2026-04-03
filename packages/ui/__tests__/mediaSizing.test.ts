@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { fitPreviewSize } from "../../ui/app/mediaSizing";
+import { fitPreviewSize } from "../app/mediaSizing";
 
 describe("fitPreviewSize", () => {
   test("caps large landscape media at 1080p", () => {

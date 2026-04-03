@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { renderProgressBar, parseProgress } from "../progress";
+import { renderProgressBar, parseProgress } from "../src/progress";
 
 describe("renderProgressBar", () => {
   it("renders 0% progress", () => {

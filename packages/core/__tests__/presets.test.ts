@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { loadPreset, applyPreset } from "../presets";
+import { loadPreset, applyPreset } from "../src/presets";
 
 describe("loadPreset", () => {
   it("loads the built-in default preset", () => {

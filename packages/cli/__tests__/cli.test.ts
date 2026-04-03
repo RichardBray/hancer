@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { parseArgs, getDefaultOutput, isSubcommand } from "../cli";
+import { parseArgs, getDefaultOutput, isSubcommand } from "../src/cli";
 
 describe("parseArgs", () => {
   it("parses input file as first positional arg", () => {

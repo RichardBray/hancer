@@ -1,5 +1,5 @@
 import { describe, expect, test, afterAll } from "bun:test";
-import { createServer } from "../../ui/server";
+import { createServer } from "../server";
 
 describe("UI API e2e", () => {
   const server = createServer(0);

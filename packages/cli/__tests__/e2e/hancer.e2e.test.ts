@@ -3,7 +3,7 @@ import { existsSync, unlinkSync } from "fs";
 import path from "path";
 
 const FIXTURES_DIR = path.join(import.meta.dir, "fixtures");
-const CLI_PATH = path.join(import.meta.dir, "../../../src/cli.ts");
+const CLI_PATH = path.join(import.meta.dir, "../../src/cli.ts");
 
 // Helper to run hancer via bun
 async function runOpenhancer(args: string[]): Promise<{ exitCode: number; stdout: string; stderr: string }> {

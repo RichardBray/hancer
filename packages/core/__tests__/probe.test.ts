@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { parseProbeOutput } from "../probe";
+import { parseProbeOutput } from "../src/probe";
 
 describe("parseProbeOutput", () => {
   it("parses video duration", () => {

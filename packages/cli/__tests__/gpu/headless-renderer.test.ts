@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from "bun:test";
 import {
   createHeadlessRenderer,
   type HeadlessRenderer,
-} from "../../gpu/wgpu-renderer";
+} from "../../src/gpu/wgpu-renderer";
 
 describe("HeadlessRenderer", () => {
   let renderer: HeadlessRenderer;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { createHeadlessRenderer } from "../../gpu/wgpu-renderer";
+import { createHeadlessRenderer } from "../../src/gpu/wgpu-renderer";
 
 describe("GPU export parity", () => {
   it("renders identical output for same input and params", async () => {
