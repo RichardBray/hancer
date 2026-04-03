@@ -1,8 +1,6 @@
 import { existsSync } from "node:fs";
-import { probe } from "./probe";
-import { applyPreset } from "./presets";
-import type { PresetData } from "./presets";
-import type { FilmOptions } from "./types";
+import { probe, applyPreset } from "@hancer/core";
+import type { PresetData, FilmOptions } from "@hancer/core";
 import { runGpuExport } from "./pipeline";
 import path from "node:path";
 
@@ -273,7 +271,7 @@ async function main() {
   const args = process.argv.slice(2);
 
   if (isSubcommand(args)) {
-    const { startUI } = await import("./ui/server");
+    const { startUI } = await import("@hancer/ui/server");
     const portIdx = args.indexOf("--port");
     const port = portIdx !== -1 ? parseInt(args[portIdx + 1], 10) : 4800;
     await startUI(port);

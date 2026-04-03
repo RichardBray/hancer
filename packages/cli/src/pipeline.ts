@@ -1,4 +1,4 @@
-import type { ProbeResult, OutputCodec } from "./types";
+import type { ProbeResult, OutputCodec } from "@hancer/core";
 import { createHeadlessRenderer } from "./gpu/wgpu-renderer";
 
 interface EncoderSettings {
