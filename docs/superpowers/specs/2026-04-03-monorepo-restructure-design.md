@@ -38,7 +38,7 @@ hancer/
 │   │   ├── __tests__/
 │   │   └── package.json
 │   │
-│   └── sidecar/               # Rust wgpu renderer (name TBD)
+│   └── wgpu/                  # Rust wgpu renderer
 │       ├── src/
 │       ├── Cargo.toml
 │       └── Cargo.lock
@@ -60,7 +60,7 @@ hancer/
 ```
 
 - `@hancer/ui` depends on `@hancer/cli` for the `runGpuExport` function used in `server.ts` for video export.
-- Sidecar is a Cargo project, not a Bun workspace member. It references shaders from `../../core/shaders/` via `include_str!`.
+- `wgpu` is a Cargo project, not a Bun workspace member. It references shaders from `../../core/shaders/` via `include_str!`.
 
 ## What Goes Where
 
@@ -69,7 +69,7 @@ hancer/
 - `schema.ts` — effect schema definition
 - `presets.ts` — preset loading, listing, directory resolution
 - `probe.ts` — ffprobe wrapper and output parsing
-- `shaders/*.wgsl` — all 10 WGSL shader files (shared by UI and sidecar)
+- `shaders/*.wgsl` — all 10 WGSL shader files (shared by UI and wgpu)
 - `index.ts` — barrel export for all of the above
 
 ### @hancer/cli
@@ -105,7 +105,7 @@ After the move, imports change from relative paths to workspace packages:
 
 **Each package** gets its own `tsconfig.json` extending a root base config.
 
-**Sidecar** builds via `cargo build --release` inside `packages/sidecar/`, triggered by root `build:gpu`.
+**wgpu** builds via `cargo build --release` inside `packages/wgpu/`, triggered by root `build:gpu`.
 
 ## Test Distribution
 
@@ -130,7 +130,7 @@ After the move, imports change from relative paths to workspace packages:
 4. Set up Bun workspaces in root `package.json`
 5. Create base + per-package `tsconfig.json`
 6. Rewrite all imports to use `@hancer/core` and `@hancer/cli`
-7. Update sidecar `include_str!` paths for shaders
+7. Update wgpu `include_str!` paths for shaders
 8. Update root build scripts
 9. Run all tests — must pass identically
 10. Create `apps/desktop/` placeholder
@@ -139,5 +139,5 @@ After the move, imports change from relative paths to workspace packages:
 
 - No behavior changes — every function stays identical
 - No new features or refactoring of function signatures
-- No renaming (sidecar rename is a separate future task)
+- Rename sidecar → wgpu as part of this restructure
 - All existing tests must pass after restructure
