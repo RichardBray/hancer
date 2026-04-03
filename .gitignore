@@ -8,13 +8,13 @@ oph
 openhancer
 
 # E2E test fixtures (generated, not committed)
-src/__tests__/e2e/fixtures/test.mp4
-src/__tests__/e2e/fixtures/test.png
-src/__tests__/e2e/fixtures/test.mov
+packages/cli/__tests__/e2e/fixtures/test.mp4
+packages/cli/__tests__/e2e/fixtures/test.png
+packages/cli/__tests__/e2e/fixtures/test.mov
 *_hanced.*
 
 # UI build output
-src/ui/dist/
+packages/ui/dist/
 
 # Worktrees
 .worktrees/

@@ -8,7 +8,7 @@ hancer/
 │   ├── core/          # Shared effect definitions, types, filter graph builder
 │   ├── cli/           # CLI binary — video processing, FFmpeg orchestration
 │   ├── ui/            # Web UI binary — Bun fullstack server + browser client
-│   └── sidecar/       # Rust wgpu renderer for headless export
+│   └── wgpu/          # Rust wgpu renderer for headless export
 ├── apps/
 │   └── desktop/       # Electron macOS app — orchestrates CLI and UI
 ```

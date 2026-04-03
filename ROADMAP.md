@@ -1,9 +1,9 @@
 # Hancer Roadmap
 
 ## Architecture
-- [ ] Restructure into monorepo (packages/core, cli, ui, sidecar + apps/desktop)
-- [ ] Separate CLI and UI into independent Bun-compiled binaries
-- [ ] Set up Bun workspaces
+- [x] Restructure into monorepo (packages/core, cli, ui, wgpu + apps/desktop)
+- [x] Separate CLI and UI into independent Bun-compiled binaries
+- [x] Set up Bun workspaces
 
 ## Web UI
 - [ ] Revamp UI — Lightroom/Final Cut Pro hybrid design with Tailwind
@@ -14,6 +14,7 @@
 - [ ] WebGPU preset preview on hover (thumbnail-sized effect preview)
 - [ ] WebGL LUT shader for log profile preview (V-Log, S-Log, C-Log)
 - [ ] RAW photo support via server-side conversion
+- [ ] Browser-based e2e tests (after UI revamp is complete)
 
 ## macOS Desktop App
 - [ ] Electron shell wrapping CLI + UI binaries
