@@ -1,4 +1,4 @@
-import type { EffectGroup as EffectGroupType, OptionDef } from "../../../schema";
+import type { EffectGroup as EffectGroupType, OptionDef } from "@hancer/core";
 
 interface Props {
   group: EffectGroupType;

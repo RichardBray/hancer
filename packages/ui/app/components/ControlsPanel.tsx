@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { EffectGroup } from "./EffectGroup";
-import type { EffectGroup as EffectGroupType } from "../../../schema";
+import type { EffectGroup as EffectGroupType } from "@hancer/core";
 
 interface Props {
   values: Record<string, string | number | boolean>;
