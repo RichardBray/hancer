@@ -274,7 +274,8 @@ async function main() {
     const { startUI } = await import("@hancer/ui/server");
     const portIdx = args.indexOf("--port");
     const port = portIdx !== -1 ? parseInt(args[portIdx + 1], 10) : 4800;
-    await startUI(port);
+    const open = !args.includes("--no-open");
+    await startUI(port, open);
     return;
   }
 

@@ -282,10 +282,12 @@ const BANNER = [
   "  \u255a\u2550\u255d  \u255a\u2550\u255d\u255a\u2550\u255d  \u255a\u2550\u255d\u255a\u2550\u255d  \u255a\u2550\u2550\u2550\u255d \u255a\u2550\u2550\u2550\u2550\u2550\u255d\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u255d\u255a\u2550\u255d  \u255a\u2550\u255d\x1b[0m",
 ].join("\n");
 
-export async function startUI(port: number): Promise<void> {
+export async function startUI(port: number, openBrowser = true): Promise<void> {
   const server = createServer(port);
   console.log(BANNER);
   console.log(`\n  \x1b[2mRunning at\x1b[0m \x1b[1mhttp://localhost:${server.port}\x1b[0m\n`);
-  const open = process.platform === "darwin" ? "open" : "xdg-open";
-  Bun.spawn([open, `http://localhost:${server.port}`], { stdout: "ignore", stderr: "ignore" });
+  if (openBrowser) {
+    const open = process.platform === "darwin" ? "open" : "xdg-open";
+    Bun.spawn([open, `http://localhost:${server.port}`], { stdout: "ignore", stderr: "ignore" });
+  }
 }
