@@ -2,17 +2,20 @@ import { describe, it, expect } from "bun:test";
 import { loadPreset, applyPreset } from "../src/presets";
 
 describe("loadPreset", () => {
-  it("loads the built-in default preset", () => {
+  it("loads the built-in default preset (.hlook format)", () => {
     const data = loadPreset("default");
     expect(data).toBeDefined();
-    expect(data["aberration"]).toBe(0.3);
-    expect(data["halation-amount"]).toBe(0.25);
+    expect(data.name).toBe("Default");
+    const params = data.params as Record<string, unknown>;
+    expect(params["aberration"]).toBe(0.3);
+    expect(params["halation-amount"]).toBe(0.25);
   });
 
-  it("loads a named built-in preset", () => {
+  it("loads a named built-in preset (.hlook format)", () => {
     const data = loadPreset("subtle");
     expect(data).toBeDefined();
-    expect(data["halation-amount"]).toBe(0.1);
+    const params = data.params as Record<string, unknown>;
+    expect(params["halation-amount"]).toBe(0.1);
   });
 
   it("throws for unknown preset", () => {

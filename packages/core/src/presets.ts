@@ -51,12 +51,19 @@ interface ApplyPresetResult extends EffectOptions {
   mergedParams: PresetData;
 }
 
+function unwrapLookParams(data: PresetData): PresetData {
+  if (data.params && typeof data.params === "object") {
+    return data.params as PresetData;
+  }
+  return data;
+}
+
 export function applyPreset(
   name: string,
   overrides: PresetData
 ): ApplyPresetResult {
-  const defaults = loadPreset("default");
-  const named = name === "default" ? {} : loadPreset(name);
+  const defaults = unwrapLookParams(loadPreset("default"));
+  const named = name === "default" ? {} : unwrapLookParams(loadPreset(name));
   const merged = { ...defaults, ...named, ...overrides };
 
   const colorSettings: ColorSettingsOptions = {

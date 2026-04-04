@@ -1,12 +1,18 @@
 {
-  "exposure": 0,
-  "contrast": 1,
-  "fade": 0.05,
-  "halation-amount": 0.1,
-  "halation-radius": 3,
-  "aberration": 0.1,
-  "bloom-amount": 0.1,
-  "grain-amount": 0.05,
-  "vignette-amount": 0.1,
-  "camera-shake-amount": 0.1
+  "name": "Subtle",
+  "description": "Light film effects for a natural, understated look",
+  "keywords": ["subtle", "natural", "light"],
+  "characteristics": ["minimal grain", "soft halation", "understated"],
+  "params": {
+    "exposure": 0,
+    "contrast": 1,
+    "fade": 0.05,
+    "halation-amount": 0.1,
+    "halation-radius": 3,
+    "aberration": 0.1,
+    "bloom-amount": 0.1,
+    "grain-amount": 0.05,
+    "vignette-amount": 0.1,
+    "camera-shake-amount": 0.1
+  }
 }
