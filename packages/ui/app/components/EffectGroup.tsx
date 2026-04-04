@@ -1,89 +1,101 @@
+import { useState } from "react";
 import type { EffectGroup as EffectGroupType, OptionDef } from "@hancer/core";
+import { RangeSlider } from "./RangeSlider";
+import { Toggle } from "./Toggle";
+import { SelectControl } from "./SelectControl";
 
 interface Props {
   group: EffectGroupType;
   values: Record<string, string | number | boolean>;
   onChange: (key: string, value: string | number | boolean) => void;
+  animating: boolean;
 }
 
-function OptionControl({ opt, value, onChange }: { opt: OptionDef; value: string | number | boolean; onChange: (v: string | number | boolean) => void }) {
-  if (opt.type === "range") {
-    const numVal = typeof value === "number" ? value : opt.default;
-    return (
-      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
-          <span style={{ opacity: 0.7 }}>{opt.label}</span>
-          <span style={{ opacity: 0.5, fontVariantNumeric: "tabular-nums" }}>{numVal}</span>
-        </div>
-        <input
-          type="range"
-          min={opt.min}
-          max={opt.max}
-          step={opt.step}
-          value={numVal}
-          onChange={e => onChange(parseFloat(e.target.value))}
-          style={{ width: "100%" }}
-        />
-      </div>
-    );
-  }
-
-  if (opt.type === "select") {
-    const strVal = typeof value === "string" ? value : opt.default;
-    return (
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12 }}>
-        <span style={{ opacity: 0.7 }}>{opt.label}</span>
-        <select
-          value={strVal}
-          onChange={e => onChange(e.target.value)}
-          style={{ background: "#1a1a1a", color: "#e0e0e0", border: "1px solid #333", borderRadius: 4, padding: "2px 6px", fontSize: 12 }}
-        >
-          {opt.choices.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-      </div>
-    );
-  }
-
-  if (opt.type === "boolean") {
-    const boolVal = typeof value === "boolean" ? value : opt.default;
-    return (
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12 }}>
-        <span style={{ opacity: 0.7 }}>{opt.label}</span>
-        <input type="checkbox" checked={boolVal} onChange={e => onChange(e.target.checked)} />
-      </div>
-    );
-  }
-
-  return null;
-}
-
-export function EffectGroup({ group, values, onChange }: Props) {
+export function EffectGroup({ group, values, onChange, animating }: Props) {
+  const [collapsed, setCollapsed] = useState(false);
   const enabled = values[group.enableKey] !== true;
 
   return (
-    <div style={{ marginBottom: 16 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-        <span style={{ fontSize: 13, fontWeight: 600 }}>{group.label}</span>
+    <div className="border-b border-zinc-800 pb-2 mb-2">
+      <div
+        className="flex items-center justify-between py-1.5 cursor-pointer select-none"
+        onClick={() => setCollapsed(!collapsed)}
+      >
+        <div className="flex items-center gap-1.5">
+          <span className={`text-[10px] text-zinc-500 transition-transform ${collapsed ? "" : "rotate-90"}`}>
+            ▶
+          </span>
+          <span className="text-xs font-semibold text-zinc-200">{group.label}</span>
+        </div>
         <input
           type="checkbox"
           checked={enabled}
-          onChange={e => {
-            onChange(group.enableKey, !e.target.checked);
-          }}
+          onClick={e => e.stopPropagation()}
+          onChange={e => onChange(group.enableKey, !e.target.checked)}
         />
       </div>
-      {enabled && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingLeft: 4 }}>
+      {!collapsed && (
+        <div className={`flex flex-col gap-2 pl-4 pt-1 ${!enabled ? "opacity-40 pointer-events-none" : ""}`}>
           {group.options.map(opt => (
             <OptionControl
               key={opt.key}
               opt={opt}
               value={values[opt.key] ?? opt.default}
               onChange={v => onChange(opt.key, v)}
+              disabled={!enabled}
+              animating={animating}
             />
           ))}
         </div>
       )}
     </div>
   );
+}
+
+function OptionControl({ opt, value, onChange, disabled, animating }: {
+  opt: OptionDef;
+  value: string | number | boolean;
+  onChange: (v: string | number | boolean) => void;
+  disabled: boolean;
+  animating: boolean;
+}) {
+  if (opt.type === "range") {
+    return (
+      <RangeSlider
+        label={opt.label}
+        value={typeof value === "number" ? value : opt.default}
+        min={opt.min}
+        max={opt.max}
+        step={opt.step}
+        onChange={onChange}
+        disabled={disabled}
+        animating={animating}
+      />
+    );
+  }
+
+  if (opt.type === "boolean") {
+    return (
+      <Toggle
+        label={opt.label}
+        checked={typeof value === "boolean" ? value : opt.default}
+        onChange={onChange}
+        disabled={disabled}
+      />
+    );
+  }
+
+  if (opt.type === "select") {
+    return (
+      <SelectControl
+        label={opt.label}
+        value={typeof value === "string" ? value : opt.default}
+        choices={opt.choices}
+        onChange={onChange}
+        disabled={disabled}
+      />
+    );
+  }
+
+  return null;
 }
