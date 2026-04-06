@@ -5,9 +5,10 @@ interface Props {
   onSubmit: (name: string, metadata: { description: string; keywords: string[]; characteristics: string[] }) => void;
   onCancel: () => void;
   initialName?: string;
+  existingNames?: string[];
 }
 
-export function NewLookModal({ onSubmit, onCancel, initialName }: Props) {
+export function NewLookModal({ onSubmit, onCancel, initialName, existingNames = [] }: Props) {
   const [name, setName] = useState(initialName || "");
   const [description, setDescription] = useState("");
   const [keywords, setKeywords] = useState("");
@@ -19,6 +20,10 @@ export function NewLookModal({ onSubmit, onCancel, initialName }: Props) {
     const validationError = validateLookName(name);
     if (validationError) {
       setError(validationError);
+      return;
+    }
+    if (existingNames.some(n => n.toLowerCase() === name.trim().toLowerCase())) {
+      setError("A look with this name already exists");
       return;
     }
     onSubmit(name.trim(), {

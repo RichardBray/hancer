@@ -52,14 +52,14 @@ export function Canvas({ src, isVideo, params, onRendererReady, onCanvasReady, o
         if (onCanvasReady) onCanvasReady(canvas);
         if (onVideoReady) onVideoReady(video);
 
-        function loop() {
+        function renderLoop() {
           if (cancelled) return;
           renderer.renderFrame();
-          rafRef.current = requestAnimationFrame(loop);
+          rafRef.current = requestAnimationFrame(renderLoop);
         }
 
         video.play();
-        loop();
+        renderLoop();
       } else {
         const img = imgRef.current!;
         await new Promise<void>(resolve => {

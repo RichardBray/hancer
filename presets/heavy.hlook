@@ -1,4 +1,5 @@
 {
+  "version": "1.0.0",
   "name": "Heavy",
   "description": "Aggressive film emulation with strong halation and grain",
   "keywords": ["heavy", "dramatic", "film"],

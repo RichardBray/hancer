@@ -8,7 +8,7 @@ interface UseResizableOptions {
   reverse?: boolean; // true for right/bottom panels where drag direction is inverted
 }
 
-function clamp(value: number, min: number, max: number): number {
+export function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 

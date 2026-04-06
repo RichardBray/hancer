@@ -134,6 +134,10 @@ export function App() {
             onDeleteLook={deleteLook}
             onRenameLook={renameLook}
             onImportLook={importLook}
+            onGetLookInfo={async (name) => {
+              const res = await fetch(`/api/look/info?name=${encodeURIComponent(name)}`);
+              return await res.json();
+            }}
           />
         </div>
 

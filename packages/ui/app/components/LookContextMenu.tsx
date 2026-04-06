@@ -5,10 +5,11 @@ interface Props {
   y: number;
   onRename: () => void;
   onDelete: () => void;
+  onInfo: () => void;
   onClose: () => void;
 }
 
-export function LookContextMenu({ x, y, onRename, onDelete, onClose }: Props) {
+export function LookContextMenu({ x, y, onRename, onDelete, onInfo, onClose }: Props) {
   const menuRef = useRef<HTMLDivElement>(null);
 
   const handleBackdropMouseDown = useCallback((e: React.MouseEvent) => {
@@ -24,6 +25,12 @@ export function LookContextMenu({ x, y, onRename, onDelete, onClose }: Props) {
         className="fixed bg-zinc-800 border border-zinc-600 rounded-lg shadow-xl py-1 z-50 min-w-[140px]"
         style={{ left: x, top: y }}
       >
+        <button
+          onClick={() => { onInfo(); onClose(); }}
+          className="w-full text-left px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-700 transition-colors"
+        >
+          Info
+        </button>
         <button
           onClick={() => { onRename(); onClose(); }}
           className="w-full text-left px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-700 transition-colors"

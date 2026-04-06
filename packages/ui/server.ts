@@ -38,6 +38,21 @@ export function createServer(port: number) {
         return Response.json(listLooks());
       }
 
+      if (url.pathname === "/api/look/info" && req.method === "GET") {
+        const name = url.searchParams.get("name") || "default";
+        try {
+          const raw = loadPreset(name);
+          return Response.json({
+            name: raw.name ?? name,
+            description: raw.description ?? "",
+            keywords: raw.keywords ?? [],
+            characteristics: raw.characteristics ?? [],
+          });
+        } catch {
+          return new Response("Look not found", { status: 404 });
+        }
+      }
+
       if (url.pathname === "/api/look" && req.method === "GET") {
         const name = url.searchParams.get("name") || "default";
         try {

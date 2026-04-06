@@ -3,6 +3,8 @@ import { LookCard } from "./LookCard";
 import { LookContextMenu } from "./LookContextMenu";
 import { NewLookModal } from "./NewLookModal";
 import { DeleteLookModal } from "./DeleteLookModal";
+import { LookInfoModal } from "./LookInfoModal";
+import { ImportIcon, PlusIcon } from "./Icons";
 import type { LookMeta } from "../hooks/useLooks";
 
 interface Props {
@@ -15,17 +17,19 @@ interface Props {
   onDeleteLook: (name: string) => void;
   onRenameLook: (oldName: string, newName: string) => void;
   onImportLook: (file: File) => void;
+  onGetLookInfo: (name: string) => Promise<{ name: string; description?: string; keywords?: string[]; characteristics?: string[] }>;
 }
 
 export function LooksPanel({
   looks, activeLook, onSelect, onHover, onHoverEnd,
-  onCreateLook, onDeleteLook, onRenameLook, onImportLook,
+  onCreateLook, onDeleteLook, onRenameLook, onImportLook, onGetLookInfo,
 }: Props) {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; name: string } | null>(null);
   const [showNewModal, setShowNewModal] = useState(false);
   const [deletingLook, setDeletingLook] = useState<string | null>(null);
   const [renamingLook, setRenamingLook] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  const [lookInfo, setLookInfo] = useState<{ name: string; description?: string; keywords?: string[]; characteristics?: string[] } | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
 
   const handleContextMenu = useCallback((e: React.MouseEvent, name: string) => {
@@ -67,18 +71,14 @@ export function LooksPanel({
             className="p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
             title="Import .hlook file"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
+            <ImportIcon />
           </button>
           <button
             onClick={() => setShowNewModal(true)}
             className="p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
             title="Create new look"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
+            <PlusIcon />
           </button>
         </div>
       </div>
@@ -128,6 +128,10 @@ export function LooksPanel({
           y={contextMenu.y}
           onRename={() => startRename(contextMenu.name)}
           onDelete={() => setDeletingLook(contextMenu.name)}
+          onInfo={async () => {
+            const info = await onGetLookInfo(contextMenu.name);
+            setLookInfo(info);
+          }}
           onClose={() => setContextMenu(null)}
         />
       )}
@@ -136,7 +140,12 @@ export function LooksPanel({
         <NewLookModal
           onSubmit={(name, metadata) => { onCreateLook(name, metadata); setShowNewModal(false); }}
           onCancel={() => setShowNewModal(false)}
+          existingNames={looks.map(l => l.name)}
         />
+      )}
+
+      {lookInfo && (
+        <LookInfoModal info={lookInfo} onClose={() => setLookInfo(null)} />
       )}
 
       {deletingLook && (

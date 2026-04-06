@@ -1,9 +1,5 @@
 import { describe, test, expect } from "bun:test";
-
-// Test the clamp logic used by useResizable
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value));
-}
+import { clamp } from "../app/hooks/useResizable";
 
 describe("useResizable clamp logic", () => {
   test("clamps below minimum", () => {
