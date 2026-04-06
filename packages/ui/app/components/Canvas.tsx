@@ -58,7 +58,6 @@ export function Canvas({ src, isVideo, params, onRendererReady, onCanvasReady, o
           rafRef.current = requestAnimationFrame(renderLoop);
         }
 
-        video.play();
         renderLoop();
       } else {
         const img = imgRef.current!;
@@ -111,7 +110,6 @@ export function Canvas({ src, isVideo, params, onRendererReady, onCanvasReady, o
           ref={videoRef}
           src={src}
           className="hidden"
-          muted
           playsInline
         />
       )}

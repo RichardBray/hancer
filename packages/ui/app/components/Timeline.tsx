@@ -34,6 +34,7 @@ export function Timeline({ videoRef }: Props) {
     videoRef.addEventListener("play", onPlay);
     videoRef.addEventListener("pause", onPause);
     if (videoRef.duration) setDuration(videoRef.duration);
+    setPlaying(!videoRef.paused);
 
     function updateTime() {
       if (videoRef && !dragging) {

@@ -118,6 +118,12 @@ export async function createRenderer(canvas: HTMLCanvasElement, init: RendererIn
   let params: PreviewParams = {};
   let frameCount = 0;
 
+  // 2D canvas for extracting video frames (copyExternalImageToTexture is unreliable with video)
+  const videoCanvas = document.createElement("canvas");
+  videoCanvas.width = sourceWidth;
+  videoCanvas.height = sourceHeight;
+  const videoCtx = videoCanvas.getContext("2d", { willReadFrequently: true })!;
+
   function makeStdBindGroup(inputTex: GPUTexture, ub: GPUBuffer): GPUBindGroup {
     return device.createBindGroup({
       layout: stdLayout,
@@ -155,11 +161,22 @@ export async function createRenderer(canvas: HTMLCanvasElement, init: RendererIn
         { width: bufferSource.width, height: bufferSource.height },
       );
     } else if (source) {
-      device.queue.copyExternalImageToTexture(
-        { source: source as HTMLVideoElement | HTMLImageElement },
-        { texture: srcTex },
-        { width: sourceWidth, height: sourceHeight },
-      );
+      if (source instanceof HTMLVideoElement) {
+        videoCtx.drawImage(source, 0, 0, sourceWidth, sourceHeight);
+        const imageData = videoCtx.getImageData(0, 0, sourceWidth, sourceHeight);
+        device.queue.writeTexture(
+          { texture: srcTex },
+          imageData.data,
+          { bytesPerRow: sourceWidth * 4, rowsPerImage: sourceHeight },
+          { width: sourceWidth, height: sourceHeight },
+        );
+      } else {
+        device.queue.copyExternalImageToTexture(
+          { source },
+          { texture: srcTex },
+          { width: sourceWidth, height: sourceHeight },
+        );
+      }
     }
   }
 
