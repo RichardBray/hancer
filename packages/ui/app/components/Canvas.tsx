@@ -113,7 +113,6 @@ export function Canvas({ src, isVideo, params, onRendererReady, onCanvasReady, o
           className="hidden"
           muted
           playsInline
-          crossOrigin="anonymous"
         />
       )}
       {!isVideo && (
@@ -121,7 +120,6 @@ export function Canvas({ src, isVideo, params, onRendererReady, onCanvasReady, o
           ref={imgRef}
           src={src}
           className="hidden"
-          crossOrigin="anonymous"
         />
       )}
       <canvas
