@@ -11,6 +11,7 @@ interface Props {
   looks: LookMeta[];
   activeLook: string | null;
   onSelect: (name: string) => void;
+  onNoLook: () => void;
   onHover: (name: string) => void;
   onHoverEnd: () => void;
   onCreateLook: (name: string, metadata: { description: string; keywords: string[]; characteristics: string[] }) => void;
@@ -21,7 +22,7 @@ interface Props {
 }
 
 export function LooksPanel({
-  looks, activeLook, onSelect, onHover, onHoverEnd,
+  looks, activeLook, onSelect, onNoLook, onHover, onHoverEnd,
   onCreateLook, onDeleteLook, onRenameLook, onImportLook, onGetLookInfo,
 }: Props) {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; name: string } | null>(null);
@@ -85,6 +86,24 @@ export function LooksPanel({
 
       <div className="flex-1 overflow-y-auto p-2">
         <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={onNoLook}
+            className={`rounded-lg overflow-hidden text-left transition-all ${
+              activeLook === null
+                ? "ring-2 ring-accent"
+                : "ring-1 ring-zinc-700 hover:ring-zinc-500"
+            }`}
+          >
+            <div className="aspect-square bg-zinc-800 flex items-center justify-center">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-zinc-500">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+              </svg>
+            </div>
+            <div className="px-1.5 py-1">
+              <span className="text-[11px] text-zinc-400 truncate block">No Look</span>
+            </div>
+          </button>
           {looks.map(look => (
             <div key={look.name}>
               {renamingLook === look.name ? (

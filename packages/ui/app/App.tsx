@@ -26,12 +26,20 @@ export function App() {
 
   const {
     looks, activeLook, activeLookParams,
-    refreshLooks, loadLook, saveLook, createLook, deleteLook, renameLook, importLook,
+    refreshLooks, loadLook, clearLook, saveLook, createLook, deleteLook, renameLook, importLook,
   } = useLooks();
 
   // Fetch schema and looks on mount — external server data
   useEffect(() => {
-    fetch("/api/schema").then(r => r.json()).then(setSchema);
+    fetch("/api/schema").then(r => r.json()).then((groups: EffectGroup[]) => {
+      setSchema(groups);
+      // Start with no effects applied (No Look)
+      const disableAll: Record<string, boolean> = {};
+      for (const group of groups) {
+        disableAll[group.enableKey] = true;
+      }
+      setParams(disableAll);
+    });
     refreshLooks();
   }, []);
 
@@ -58,6 +66,17 @@ export function App() {
   const handleBatchChange = useCallback((data: Record<string, string | number | boolean>) => {
     setParams(prev => ({ ...prev, ...data }));
   }, []);
+
+  const handleNoLook = useCallback(() => {
+    clearLook();
+    setAnimating(true);
+    const disableAll: Record<string, boolean> = {};
+    for (const group of schema) {
+      disableAll[group.enableKey] = true;
+    }
+    setParams(disableAll);
+    setTimeout(() => setAnimating(false), 350);
+  }, [clearLook, schema]);
 
   const handleLookSelect = useCallback(async (name: string) => {
     const lookParams = await loadLook(name);
@@ -128,6 +147,7 @@ export function App() {
             looks={looks}
             activeLook={activeLook}
             onSelect={handleLookSelect}
+            onNoLook={handleNoLook}
             onHover={handleLookHover}
             onHoverEnd={handleLookHoverEnd}
             onCreateLook={handleCreateLook}
