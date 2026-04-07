@@ -81,6 +81,11 @@ export function useLooks() {
     refreshLooks();
   }, [activeLook, refreshLooks]);
 
+  const clearLook = useCallback(() => {
+    setActiveLook(null);
+    setActiveLookParams(null);
+  }, []);
+
   const importLook = useCallback(async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -95,6 +100,7 @@ export function useLooks() {
     activeLookParams,
     refreshLooks,
     loadLook,
+    clearLook,
     saveLook,
     createLook,
     deleteLook,
