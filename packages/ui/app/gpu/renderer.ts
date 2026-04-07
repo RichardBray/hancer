@@ -100,6 +100,8 @@ export async function createRenderer(canvas: HTMLCanvasElement, init: RendererIn
   const shakePipeline = createFullscreenPipeline(device, FULLSCREEN_VERT, CAMERA_SHAKE_FRAG, stdLayout, format);
 
   const colorUB = createUniformBuffer(device, 32); // 8 floats
+  const blitUB = createUniformBuffer(device, 32); // identity color pass for final blit
+  device.queue.writeBuffer(blitUB, 0, new Float32Array([1, 0, 1, 1, 6500, 0, 0, 0]));
   const thresholdUB = createUniformBuffer(device, 16);
   const blurUB1 = createUniformBuffer(device, 16);
   const blurUB2 = createUniformBuffer(device, 16);
@@ -384,8 +386,7 @@ export async function createRenderer(canvas: HTMLCanvasElement, init: RendererIn
     lastOutputTex = current;
 
     // Canvas texture can't be used mid-chain, so blit via neutral passthrough
-    device.queue.writeBuffer(colorUB, 0, new Float32Array([1, 0, 1, 1, 6500, 0, 0, 0]));
-    const finalBG = makeStdBindGroup(current, colorUB);
+    const finalBG = makeStdBindGroup(current, blitUB);
     runPass(encoder, colorPipeline, finalBG, ctx.getCurrentTexture().createView());
 
     device.queue.submit([encoder.finish()]);
