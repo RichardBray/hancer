@@ -4,26 +4,22 @@ mod renderer;
 
 use std::io::{self, Read, Write};
 
-fn read_init_message(stdin: &mut impl Read) -> io::Result<params::InitMessage> {
-    let mut len_buf = [0u8; 4];
-    stdin.read_exact(&mut len_buf)?;
-    let len = u32::from_le_bytes(len_buf) as usize;
-
-    let mut json_buf = vec![0u8; len];
-    stdin.read_exact(&mut json_buf)?;
-
-    serde_json::from_slice(&json_buf)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-}
-
 fn main() {
     let mut stdin = io::stdin().lock();
     let mut stdout = io::stdout().lock();
 
-    let init = match read_init_message(&mut stdin) {
+    let init_json = match std::env::args().nth(1) {
+        Some(arg) => arg,
+        None => {
+            eprintln!("Usage: hancer-gpu <init-json>");
+            std::process::exit(1);
+        }
+    };
+
+    let init: params::InitMessage = match serde_json::from_str(&init_json) {
         Ok(msg) => msg,
         Err(e) => {
-            eprintln!("Failed to read init message: {e}");
+            eprintln!("Failed to parse init JSON: {e}");
             std::process::exit(1);
         }
     };

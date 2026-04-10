@@ -40,22 +40,14 @@ export async function createHeadlessRenderer(): Promise<HeadlessRenderer> {
   async function init(width: number, height: number, params: Record<string, unknown> = {}): Promise<void> {
     frameSize = width * height * 4;
 
-    proc = Bun.spawn([sidecarPath()], {
+    const initJson = JSON.stringify({ width, height, params });
+    proc = Bun.spawn([sidecarPath(), initJson], {
       stdin: "pipe",
       stdout: "pipe",
-      stderr: "pipe",
+      stderr: "inherit",
     });
 
     reader = proc.stdout.getReader();
-
-    // Send init message: 4-byte LE length + JSON
-    const initMsg = JSON.stringify({ width, height, params });
-    const initBytes = new TextEncoder().encode(initMsg);
-    const lenBuf = new Uint8Array(4);
-    new DataView(lenBuf.buffer).setUint32(0, initBytes.length, true);
-
-    proc.stdin.write(lenBuf);
-    proc.stdin.write(initBytes);
   }
 
   async function renderFrame(
@@ -70,7 +62,7 @@ export async function createHeadlessRenderer(): Promise<HeadlessRenderer> {
     // a protocol extension. For now, params are fixed at init time.
     // TODO: If per-frame param updates are needed, extend the protocol.
 
-    proc.stdin.write(rgba);
+    await proc.stdin.write(rgba);
 
     return readExactly(frameSize);
   }

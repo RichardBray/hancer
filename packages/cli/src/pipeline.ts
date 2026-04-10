@@ -1,5 +1,8 @@
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { unlink } from "node:fs/promises";
 import type { ProbeResult, OutputCodec } from "@hancer/core";
-import { createHeadlessRenderer } from "./gpu/wgpu-renderer";
+import { parseProgress } from "./progress";
 
 interface EncoderSettings {
   codec: OutputCodec;
@@ -7,7 +10,15 @@ interface EncoderSettings {
   encodePreset: string;
 }
 
-function buildEncoderArgs(settings: EncoderSettings, width: number, height: number, fps: number, input: string, output: string): string[] {
+function sidecarPath(): string {
+  return join(import.meta.dir, "..", "..", "wgpu", "target", "release", "hancer-gpu");
+}
+
+function shellEscape(s: string): string {
+  return `'${s.replace(/'/g, `'\\''`)}'`;
+}
+
+function buildEncoderArgs(settings: EncoderSettings, width: number, height: number, fps: number, input: string, output: string, progressPath: string): string[] {
   const base = [
     "ffmpeg", "-y",
     "-f", "rawvideo", "-pix_fmt", "rgba",
@@ -31,7 +42,7 @@ function buildEncoderArgs(settings: EncoderSettings, width: number, height: numb
       break;
   }
 
-  base.push(output);
+  base.push("-progress", progressPath, "-v", "error", output);
   return base;
 }
 
@@ -48,78 +59,60 @@ export async function runGpuExport(
     throw new Error("Video metadata incomplete — need width, height, fps, duration");
   }
 
-  const totalFrames = Math.ceil(fps * duration);
-  const frameSize = width * height * 4;
+  const progressPath = join(tmpdir(), `hancer-progress-${process.pid}-${Date.now()}.log`);
+  const initJson = JSON.stringify({ width, height, params });
 
-  // Spawn FFmpeg decoder: raw RGBA output to stdout
-  const decoder = Bun.spawn([
-    "ffmpeg", "-i", input,
+  const decoderCmd = [
+    "ffmpeg", "-i", shellEscape(input),
     "-f", "rawvideo", "-pix_fmt", "rgba",
     "-v", "quiet",
     "pipe:1",
-  ], { stdout: "pipe", stderr: "pipe" });
+  ].join(" ");
 
-  // Spawn FFmpeg encoder
+  const sidecarCmd = `${shellEscape(sidecarPath())} ${shellEscape(initJson)}`;
+
   const settings = encoderSettings ?? { codec: "h264", crf: 18, encodePreset: "medium" };
-  const encoderArgs = buildEncoderArgs(settings, width, height, fps, input, output);
-  const encoder = Bun.spawn(encoderArgs, { stdin: "pipe", stdout: "pipe", stderr: "pipe" });
+  const encoderArgs = buildEncoderArgs(settings, width, height, fps, input, output, progressPath);
+  const encoderCmd = encoderArgs.map((a, i) => i === 0 ? a : shellEscape(a)).join(" ");
 
-  // Create headless renderer
-  const renderer = await createHeadlessRenderer();
-  await renderer.init(width, height, params);
+  const pipeline = `set -o pipefail; ${decoderCmd} | ${sidecarCmd} | ${encoderCmd}`;
 
-  // Process frames
-  const reader = decoder.stdout.getReader();
-  const chunks: Uint8Array[] = [];
-  let bufferedBytes = 0;
-  let frameCount = 0;
+  const proc = Bun.spawn(["sh", "-c", pipeline], {
+    stdout: "inherit",
+    stderr: "inherit",
+  });
 
-  function drainBuffer(needed: number): Uint8Array {
-    const result = new Uint8Array(needed);
-    let offset = 0;
-    while (offset < needed) {
-      const chunk = chunks[0];
-      const take = Math.min(chunk.length, needed - offset);
-      result.set(chunk.subarray(0, take), offset);
-      offset += take;
-      if (take === chunk.length) {
-        chunks.shift();
-      } else {
-        chunks[0] = chunk.subarray(take);
+  // Poll progress file while the pipeline runs
+  let stopPolling = false;
+  const pollProgress = (async () => {
+    while (!stopPolling) {
+      try {
+        const text = await Bun.file(progressPath).text();
+        const lines = text.split("\n");
+        for (let i = lines.length - 1; i >= 0; i--) {
+          const ratio = parseProgress(lines[i], duration);
+          if (ratio !== null) {
+            onProgress(Math.min(ratio, 1));
+            break;
+          }
+        }
+      } catch {
+        // file not yet created
       }
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
-    bufferedBytes -= needed;
-    return result;
-  }
+  })();
 
   try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      chunks.push(value);
-      bufferedBytes += value.length;
-
-      while (bufferedBytes >= frameSize) {
-        const frame = drainBuffer(frameSize);
-
-        const rendered = await renderer.renderFrame(frame, width, height, params);
-        encoder.stdin.write(rendered);
-
-        frameCount++;
-        onProgress(Math.min(frameCount / totalFrames, 1));
-      }
-    }
-
-    encoder.stdin.end();
-    const exitCode = await encoder.exited;
+    const exitCode = await proc.exited;
+    stopPolling = true;
+    await pollProgress;
     if (exitCode !== 0) {
-      const stderr = await new Response(encoder.stderr).text();
-      throw new Error(`FFmpeg encoder failed: ${stderr.trim()}`);
+      throw new Error(`Export pipeline failed (exit ${exitCode})`);
     }
     onProgress(1);
   } finally {
-    await renderer.close();
+    stopPolling = true;
+    try { await unlink(progressPath); } catch {}
   }
 }
-
