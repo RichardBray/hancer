@@ -14,11 +14,32 @@ function sidecarPath(): string {
   return join(import.meta.dir, "..", "..", "wgpu", "target", "release", "hancer-gpu");
 }
 
+let cachedEncoders: Set<string> | null = null;
+async function detectEncoders(): Promise<Set<string>> {
+  if (cachedEncoders) return cachedEncoders;
+  const proc = Bun.spawn(["ffmpeg", "-hide_banner", "-encoders"], { stdout: "pipe", stderr: "ignore" });
+  const text = await new Response(proc.stdout).text();
+  await proc.exited;
+  const set = new Set<string>();
+  for (const line of text.split("\n")) {
+    const m = line.match(/^\s*[A-Z.]+\s+(\S+)/);
+    if (m) set.add(m[1]);
+  }
+  cachedEncoders = set;
+  return set;
+}
+
+// Map libx264-style CRF (0-51, lower=better) to VideoToolbox q:v (1-100, higher=better)
+function crfToVideoToolboxQ(crf: number): number {
+  const q = Math.round(100 - crf * 2);
+  return Math.max(1, Math.min(100, q));
+}
+
 function shellEscape(s: string): string {
   return `'${s.replace(/'/g, `'\\''`)}'`;
 }
 
-function buildEncoderArgs(settings: EncoderSettings, width: number, height: number, fps: number, input: string, output: string, progressPath: string): string[] {
+function buildEncoderArgs(settings: EncoderSettings, width: number, height: number, fps: number, input: string, output: string, progressPath: string, encoders: Set<string>): string[] {
   const base = [
     "ffmpeg", "-y",
     "-f", "rawvideo", "-pix_fmt", "rgba",
@@ -29,16 +50,26 @@ function buildEncoderArgs(settings: EncoderSettings, width: number, height: numb
     "-c:a", "copy",
   ];
 
+  const vtQ = crfToVideoToolboxQ(settings.crf);
+
   switch (settings.codec) {
     case "prores":
       base.push("-c:v", "prores_ks", "-profile:v", "3", "-pix_fmt", "yuv422p10le");
       break;
     case "h265":
-      base.push("-c:v", "libx265", "-preset", settings.encodePreset, "-crf", String(settings.crf), "-pix_fmt", "yuv420p", "-tag:v", "hvc1");
+      if (encoders.has("hevc_videotoolbox")) {
+        base.push("-c:v", "hevc_videotoolbox", "-q:v", String(vtQ), "-pix_fmt", "yuv420p", "-tag:v", "hvc1");
+      } else {
+        base.push("-c:v", "libx265", "-preset", settings.encodePreset, "-crf", String(settings.crf), "-pix_fmt", "yuv420p", "-tag:v", "hvc1");
+      }
       break;
     case "h264":
     default:
-      base.push("-c:v", "libx264", "-preset", settings.encodePreset, "-crf", String(settings.crf), "-pix_fmt", "yuv420p");
+      if (encoders.has("h264_videotoolbox")) {
+        base.push("-c:v", "h264_videotoolbox", "-q:v", String(vtQ), "-pix_fmt", "yuv420p");
+      } else {
+        base.push("-c:v", "libx264", "-preset", settings.encodePreset, "-crf", String(settings.crf), "-pix_fmt", "yuv420p");
+      }
       break;
   }
 
@@ -72,7 +103,8 @@ export async function runGpuExport(
   const sidecarCmd = `${shellEscape(sidecarPath())} ${shellEscape(initJson)}`;
 
   const settings = encoderSettings ?? { codec: "h264", crf: 18, encodePreset: "medium" };
-  const encoderArgs = buildEncoderArgs(settings, width, height, fps, input, output, progressPath);
+  const encoders = await detectEncoders();
+  const encoderArgs = buildEncoderArgs(settings, width, height, fps, input, output, progressPath, encoders);
   const encoderCmd = encoderArgs.map((a, i) => i === 0 ? a : shellEscape(a)).join(" ");
 
   const pipeline = `set -o pipefail; ${decoderCmd} | ${sidecarCmd} | ${encoderCmd}`;
