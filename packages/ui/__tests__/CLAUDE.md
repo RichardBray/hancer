@@ -4,32 +4,17 @@
 
 Playwright headless Chrome does not support WebGPU. To test the UI visually (e.g. video rendering on canvas), use `agent-browser` with a real Chrome instance that has remote debugging enabled.
 
-### Setup
-
-1. Open Chrome with remote debugging enabled, or enable it via `chrome://inspect` > "Allow remote debugging for this browser instance" (default port `127.0.0.1:9222`)
-2. Start the UI server: `bun run packages/cli/src/cli.ts ui`
+Enable Chrome remote debugging via `chrome://inspect` (default `127.0.0.1:9222`), then start the UI server.
 
 ### Usage
 
 ```bash
-# Auto-discover and connect to running Chrome
 agent-browser --auto-connect open http://localhost:4800
-
-# Or connect via explicit CDP port
-agent-browser --cdp 9222 open http://localhost:4800
-
-# Take screenshots
 agent-browser --auto-connect screenshot /tmp/screenshot.png
-
-# Get accessibility snapshot (useful for finding elements)
-agent-browser --auto-connect snapshot
-
-# Run JS in the browser
 agent-browser --auto-connect eval "document.querySelector('video').videoWidth"
-
-# Upload files (requires a visible input element or JS workaround)
-agent-browser --auto-connect upload "input[type=file]" /path/to/file.mov
 ```
+
+Also supports `snapshot` (a11y tree), `upload`, and `--cdp <port>` for explicit connection.
 
 ### File uploads with dynamic inputs
 
