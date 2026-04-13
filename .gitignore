@@ -3,9 +3,7 @@ node_modules/
 
 # Build output
 dist/
-hancer
-oph
-openhancer
+hance
 
 # E2E test fixtures (generated, not committed)
 packages/cli/__tests__/e2e/fixtures/test.mp4
