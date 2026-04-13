@@ -1,11 +1,11 @@
-# Hancer
+# Hance
 Single-binary CLI that applies cinematic film effects to video/images in one FFmpeg pass.
 
 ## Stack
 - Runtime: Bun
 - Language: TypeScript
 - FFmpeg: via Bun.spawn (must be installed on system)
-- Build: `bun build packages/cli/src/cli.ts --compile --outfile hancer`
+- Build: `bun build packages/cli/src/cli.ts --compile --outfile hance`
 - Monorepo: Bun workspaces (packages/core, packages/cli, packages/ui, packages/wgpu)
 
 ## Commands

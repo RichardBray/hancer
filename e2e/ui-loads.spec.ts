@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test.describe("UI loads", () => {
   test("renders the app shell", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator("text=hancer")).toBeVisible();
+    await expect(page.locator("text=hance")).toBeVisible();
   });
 
   test("shows the upload drop zone", async ({ page }) => {

@@ -1,5 +1,5 @@
 [package]
-name = "hancer-gpu"
+name = "hance-gpu"
 version = "0.1.0"
 edition = "2021"
 

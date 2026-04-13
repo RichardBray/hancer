@@ -1,5 +1,5 @@
 {
-  "name": "@hancer/ui",
+  "name": "@hance/ui",
   "version": "0.1.0",
   "type": "module",
   "main": "server.ts",
@@ -8,8 +8,8 @@
     "./server": "./server.ts"
   },
   "dependencies": {
-    "@hancer/core": "workspace:*",
-    "@hancer/cli": "workspace:*",
+    "@hance/core": "workspace:*",
+    "@hance/cli": "workspace:*",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },

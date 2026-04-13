@@ -11,7 +11,7 @@ import { Timeline } from "./components/Timeline";
 import { ResizeDivider } from "./components/ResizeDivider";
 import { NewLookModal } from "./components/NewLookModal";
 import type { Renderer, PreviewParams } from "./gpu/renderer";
-import type { EffectGroup } from "@hancer/core";
+import type { EffectGroup } from "@hance/core";
 
 export function App() {
   const { file, objectUrl, isVideo, upload } = useUpload();

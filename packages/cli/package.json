@@ -1,10 +1,10 @@
 {
-  "name": "@hancer/cli",
+  "name": "@hance/cli",
   "version": "0.1.0",
   "type": "module",
   "main": "src/cli.ts",
   "dependencies": {
-    "@hancer/core": "workspace:*",
-    "@hancer/ui": "workspace:*"
+    "@hance/core": "workspace:*",
+    "@hance/ui": "workspace:*"
   }
 }

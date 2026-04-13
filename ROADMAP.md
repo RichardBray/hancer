@@ -1,4 +1,4 @@
-# Hancer Roadmap
+# Hance Roadmap
 
 ## Architecture
 - [x] Restructure into monorepo (packages/core, cli, ui, wgpu + apps/desktop)

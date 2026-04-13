@@ -3,29 +3,29 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "openhancer",
+      "name": "openhance",
       "devDependencies": {
         "@types/bun": "^1.3.11",
       },
     },
     "packages/cli": {
-      "name": "@hancer/cli",
+      "name": "@hance/cli",
       "version": "1.0.0",
       "dependencies": {
-        "@hancer/core": "workspace:*",
-        "@hancer/ui": "workspace:*",
+        "@hance/core": "workspace:*",
+        "@hance/ui": "workspace:*",
       },
     },
     "packages/core": {
-      "name": "@hancer/core",
+      "name": "@hance/core",
       "version": "1.0.0",
     },
     "packages/ui": {
-      "name": "@hancer/ui",
+      "name": "@hance/ui",
       "version": "1.0.0",
       "dependencies": {
-        "@hancer/cli": "workspace:*",
-        "@hancer/core": "workspace:*",
+        "@hance/cli": "workspace:*",
+        "@hance/core": "workspace:*",
         "react": "^19.2.4",
         "react-dom": "^19.2.4",
       },
@@ -43,11 +43,11 @@
   "packages": {
     "@alloc/quick-lru": ["@alloc/quick-lru@5.2.0", "", {}, "sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw=="],
 
-    "@hancer/cli": ["@hancer/cli@workspace:packages/cli"],
+    "@hance/cli": ["@hance/cli@workspace:packages/cli"],
 
-    "@hancer/core": ["@hancer/core@workspace:packages/core"],
+    "@hance/core": ["@hance/core@workspace:packages/core"],
 
-    "@hancer/ui": ["@hancer/ui@workspace:packages/ui"],
+    "@hance/ui": ["@hance/ui@workspace:packages/ui"],
 
     "@jridgewell/gen-mapping": ["@jridgewell/gen-mapping@0.3.13", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.0", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA=="],
 

@@ -2,13 +2,13 @@
 
 ## Overview
 
-Full rewrite of the hancer web UI from inline-styled React components to a Tailwind-based, FCP-inspired three-column layout with resizable panels. Renames "Preset" to "Look" throughout (`.hlook` file format). Server and WebGPU renderer stay as-is; this is purely the React component layer plus new server endpoints for look thumbnails.
+Full rewrite of the hance web UI from inline-styled React components to a Tailwind-based, FCP-inspired three-column layout with resizable panels. Renames "Preset" to "Look" throughout (`.hlook` file format). Server and WebGPU renderer stay as-is; this is purely the React component layer plus new server endpoints for look thumbnails.
 
 ## Layout Structure
 
 ```
 +------------------------------------------+
-|  hancer              filename.mp4  [Export]|  <- Top bar
+|  hance              filename.mp4  [Export]|  <- Top bar
 +----------+----------------+--------------+
 |          |                |              |
 |  Looks   |    Canvas /    | Adjustments  |
@@ -20,7 +20,7 @@ Full rewrite of the hancer web UI from inline-styled React components to a Tailw
 +------------------------------------------+
 ```
 
-- **Top bar**: "hancer" text (left), filename (center), export button (right). No logo yet.
+- **Top bar**: "hance" text (left), filename (center), export button (right). No logo yet.
 - **Left panel**: Looks browser. Default 240px, resizable 200-400px.
 - **Center**: WebGPU canvas with aspect-ratio preservation. Upload drop zone when no media loaded.
 - **Right panel**: Adjustments inspector. Default 300px, resizable 250-450px.
@@ -221,8 +221,8 @@ All existing components are rewritten. New component tree:
 - `gpu/passes.ts`, `gpu/shaders.ts`, `gpu/splitToneMath.ts` — untouched
 - `hooks/useUpload.ts` — stays as-is
 - `mediaSizing.ts` — stays as-is
-- `@hancer/core` — no changes
-- `@hancer/cli` — no changes
+- `@hance/core` — no changes
+- `@hance/cli` — no changes
 
 ## Dependencies Added
 

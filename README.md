@@ -1,8 +1,8 @@
-# Hancer
+# Hance
 
-**Cinematic film look in one command.** Drop hancer into any video pipeline — batch processing, CI/CD, content automation — and get GPU-accelerated colour grading, halation, chromatic aberration, and gate weave without opening an editor. One binary, one pass, no plugins, no subscriptions.
+**Cinematic film look in one command.** Drop hance into any video pipeline — batch processing, CI/CD, content automation — and get GPU-accelerated colour grading, halation, chromatic aberration, and gate weave without opening an editor. One binary, one pass, no plugins, no subscriptions.
 
-### Why hancer?
+### Why hance?
 
 - **One-pass processing** — all effects compose into a single filter graph. No intermediate files, no re-encoding chains.
 - **GPU-accelerated** — native wgpu sidecar renders effects on the GPU. Fast enough for batch workflows.
@@ -27,45 +27,45 @@
 
 ```bash
 # Clone and build
-git clone https://github.com/RichardBray/hancer.git
-cd hancer
+git clone https://github.com/RichardBray/hance.git
+cd hance
 bun install
 bun run build    # builds Rust sidecar + UI + CLI binary
 
 # Optional: add to PATH
-ln -s $(pwd)/hancer /usr/local/bin/hancer
+ln -s $(pwd)/hance /usr/local/bin/hance
 ```
 
 ### Building components individually
 
 ```bash
-bun run build:gpu   # Build Rust wgpu sidecar (sidecar/target/release/hancer-gpu)
+bun run build:gpu   # Build Rust wgpu sidecar (sidecar/target/release/hance-gpu)
 bun run build:ui    # Build browser UI bundle
 ```
 
 ## Usage
 
 ```bash
-hancer <input> [options]
+hance <input> [options]
 ```
 
 ### Examples
 
 ```bash
 # Process video with defaults
-hancer video.mp4
+hance video.mp4
 
 # Process image
-hancer photo.png
+hance photo.png
 
 # Custom output path
-hancer video.mp4 -o output.mp4
+hance video.mp4 -o output.mp4
 
 # Adjust effects
-hancer video.mp4 --lift 0.1 --fade 0.3 --aberration 0.5
+hance video.mp4 --lift 0.1 --fade 0.3 --aberration 0.5
 
 # Fast encode, lower quality
-hancer video.mp4 --preset fast --crf 28
+hance video.mp4 --preset fast --crf 28
 ```
 
 ### Options
@@ -114,19 +114,19 @@ bun run build
 
 ## Output Quality
 
-By default, hancer encodes output as H.264 with CRF 18. If your source is a high-quality format like ProRes (common with `.mov` files from cameras or editing software), the default H.264 output will be lower quality than the original due to lossy compression and 4:2:0 chroma subsampling.
+By default, hance encodes output as H.264 with CRF 18. If your source is a high-quality format like ProRes (common with `.mov` files from cameras or editing software), the default H.264 output will be lower quality than the original due to lossy compression and 4:2:0 chroma subsampling.
 
 To preserve quality closer to the original:
 
 ```bash
 # Use ProRes output (near-lossless, 4:2:2 10-bit, larger files)
-hancer video.mov -o output.mov --codec prores
+hance video.mov -o output.mov --codec prores
 
 # Use a lower CRF for higher-quality H.264 (0 = lossless)
-hancer video.mov -o output.mp4 --crf 8
+hance video.mov -o output.mp4 --crf 8
 
 # Use H.265 for better quality at similar file sizes
-hancer video.mov -o output.mp4 --codec h265 --crf 12
+hance video.mov -o output.mp4 --codec h265 --crf 12
 ```
 
 | Codec | Quality | File Size | Compatibility |

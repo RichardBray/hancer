@@ -1,9 +1,9 @@
-# Hancer Architecture
+# Hance Architecture
 
 ## Monorepo Structure
 
 ```
-hancer/
+hance/
 ├── packages/
 │   ├── core/          # Shared effect definitions, types, filter graph builder
 │   ├── cli/           # CLI binary — video processing, FFmpeg orchestration
@@ -26,7 +26,7 @@ FCP-inspired three-column layout built with React 19 and Tailwind CSS v4:
 
 ```
 +------------------------------------------+
-|  hancer              filename.mp4  [Export]|  <- TopBar
+|  hance              filename.mp4  [Export]|  <- TopBar
 +----------+----------------+--------------+
 |          |                |              |
 |  Looks   |    Canvas /    | Adjustments  |

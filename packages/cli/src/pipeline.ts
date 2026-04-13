@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { unlink } from "node:fs/promises";
-import type { ProbeResult, OutputCodec } from "@hancer/core";
+import type { ProbeResult, OutputCodec } from "@hance/core";
 import { parseProgress } from "./progress";
 
 interface EncoderSettings {
@@ -11,7 +11,7 @@ interface EncoderSettings {
 }
 
 function sidecarPath(): string {
-  return join(import.meta.dir, "..", "..", "wgpu", "target", "release", "hancer-gpu");
+  return join(import.meta.dir, "..", "..", "wgpu", "target", "release", "hance-gpu");
 }
 
 let cachedEncoders: Set<string> | null = null;
@@ -108,7 +108,7 @@ export async function runGpuExport(
     throw new Error("Video metadata incomplete — need width, height, fps, duration");
   }
 
-  const progressPath = join(tmpdir(), `hancer-progress-${process.pid}-${Date.now()}.log`);
+  const progressPath = join(tmpdir(), `hance-progress-${process.pid}-${Date.now()}.log`);
   const initJson = JSON.stringify({ width, height, params });
 
   const decoderCmd = [

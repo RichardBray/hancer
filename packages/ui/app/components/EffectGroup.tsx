@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { EffectGroup as EffectGroupType, OptionDef } from "@hancer/core";
+import type { EffectGroup as EffectGroupType, OptionDef } from "@hance/core";
 import { RangeSlider } from "./RangeSlider";
 import { Toggle } from "./Toggle";
 import { SelectControl } from "./SelectControl";

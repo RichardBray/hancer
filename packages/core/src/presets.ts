@@ -31,7 +31,7 @@ export function builtinPresetsDir(): string {
 }
 
 export function userPresetsDir(): string {
-  return join(homedir(), ".hancer", "presets");
+  return join(homedir(), ".hance", "presets");
 }
 
 export function loadPreset(name: string): PresetData {

@@ -1439,7 +1439,7 @@ git commit -m "refactor(cli): update flags and help text for all new/renamed eff
 ### Task 13: Update E2E tests
 
 **Files:**
-- Modify: `src/__tests__/e2e/openhancer.e2e.test.ts`
+- Modify: `src/__tests__/e2e/openhance.e2e.test.ts`
 
 **Step 1: Update the e2e test to use new flag names**
 
@@ -1457,7 +1457,7 @@ Expected: PASS
 **Step 3: Commit**
 
 ```bash
-git add src/__tests__/e2e/openhancer.e2e.test.ts
+git add src/__tests__/e2e/openhance.e2e.test.ts
 git commit -m "test(e2e): update e2e tests for new effect flags and options"
 ```
 

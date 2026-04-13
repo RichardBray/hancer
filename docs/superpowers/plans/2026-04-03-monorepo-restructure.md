@@ -4,7 +4,7 @@
 
 **Goal:** Restructure the flat `src/` layout into a Bun workspace monorepo with `packages/core`, `packages/cli`, `packages/ui`, and `packages/wgpu`.
 
-**Architecture:** Files move from `src/` into package directories. Imports change from relative paths to `@hancer/core` and `@hancer/cli` workspace references. No behavior changes — every function stays identical.
+**Architecture:** Files move from `src/` into package directories. Imports change from relative paths to `@hance/core` and `@hance/cli` workspace references. No behavior changes — every function stays identical.
 
 **Tech Stack:** Bun workspaces, TypeScript, Cargo (Rust)
 
@@ -31,7 +31,7 @@ mkdir -p packages/core/src packages/cli/src packages/cli/__tests__/e2e/fixtures 
 
 ```json
 {
-  "name": "@hancer/core",
+  "name": "@hance/core",
   "version": "1.0.0",
   "type": "module",
   "main": "src/index.ts"
@@ -42,12 +42,12 @@ mkdir -p packages/core/src packages/cli/src packages/cli/__tests__/e2e/fixtures 
 
 ```json
 {
-  "name": "@hancer/cli",
+  "name": "@hance/cli",
   "version": "1.0.0",
   "type": "module",
   "main": "src/cli.ts",
   "dependencies": {
-    "@hancer/core": "workspace:*"
+    "@hance/core": "workspace:*"
   }
 }
 ```
@@ -56,13 +56,13 @@ mkdir -p packages/core/src packages/cli/src packages/cli/__tests__/e2e/fixtures 
 
 ```json
 {
-  "name": "@hancer/ui",
+  "name": "@hance/ui",
   "version": "1.0.0",
   "type": "module",
   "main": "server.ts",
   "dependencies": {
-    "@hancer/core": "workspace:*",
-    "@hancer/cli": "workspace:*",
+    "@hance/core": "workspace:*",
+    "@hance/cli": "workspace:*",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },
@@ -77,13 +77,13 @@ mkdir -p packages/core/src packages/cli/src packages/cli/__tests__/e2e/fixtures 
 
 ```json
 {
-  "name": "hancer",
+  "name": "hance",
   "version": "1.0.0",
   "type": "module",
   "workspaces": ["packages/core", "packages/cli", "packages/ui"],
   "scripts": {
     "start": "bun run packages/cli/src/cli.ts",
-    "build": "bun run build:wgpu && bun run build:ui && bun build packages/cli/src/cli.ts --compile --outfile hancer",
+    "build": "bun run build:wgpu && bun run build:ui && bun build packages/cli/src/cli.ts --compile --outfile hance",
     "build:ui": "bun run scripts/build-ui.ts",
     "build:wgpu": "cd packages/wgpu && ~/.cargo/bin/cargo build --release",
     "test": "bun test"
@@ -188,10 +188,10 @@ Replace the imports at the top of `packages/cli/src/cli.ts`:
 
 ```typescript
 import { existsSync } from "node:fs";
-import { probe } from "@hancer/core";
-import { applyPreset } from "@hancer/core";
-import type { PresetData } from "@hancer/core";
-import type { FilmOptions } from "@hancer/core";
+import { probe } from "@hance/core";
+import { applyPreset } from "@hance/core";
+import type { PresetData } from "@hance/core";
+import type { FilmOptions } from "@hance/core";
 import { runGpuExport } from "./pipeline";
 import path from "node:path";
 ```
@@ -200,8 +200,8 @@ Or combined:
 
 ```typescript
 import { existsSync } from "node:fs";
-import { probe, applyPreset } from "@hancer/core";
-import type { PresetData, FilmOptions } from "@hancer/core";
+import { probe, applyPreset } from "@hance/core";
+import type { PresetData, FilmOptions } from "@hance/core";
 import { runGpuExport } from "./pipeline";
 import path from "node:path";
 ```
@@ -215,7 +215,7 @@ const { startUI } = await import("./ui/server");
 to:
 
 ```typescript
-const { startUI } = await import("@hancer/ui/server");
+const { startUI } = await import("@hance/ui/server");
 ```
 
 And update the dynamic import for the GPU renderer. In the image processing block, change:
@@ -238,7 +238,7 @@ import { createHeadlessRenderer } from "./gpu/wgpu-renderer";
 with:
 
 ```typescript
-import type { ProbeResult, OutputCodec } from "@hancer/core";
+import type { ProbeResult, OutputCodec } from "@hance/core";
 import { createHeadlessRenderer } from "./gpu/wgpu-renderer";
 ```
 
@@ -248,7 +248,7 @@ Change `sidecarPath()`:
 
 ```typescript
 function sidecarPath(): string {
-  const devPath = join(import.meta.dir, "..", "..", "..", "wgpu", "target", "release", "hancer-gpu");
+  const devPath = join(import.meta.dir, "..", "..", "..", "wgpu", "target", "release", "hance-gpu");
   return devPath;
 }
 ```
@@ -295,9 +295,9 @@ import { probe } from "../probe";
 with:
 
 ```typescript
-import { EFFECT_SCHEMA, loadPreset, builtinPresetsDir, userPresetsDir, probe } from "@hancer/core";
-import type { PresetData } from "@hancer/core";
-import { runGpuExport } from "@hancer/cli/src/pipeline";
+import { EFFECT_SCHEMA, loadPreset, builtinPresetsDir, userPresetsDir, probe } from "@hance/core";
+import type { PresetData } from "@hance/core";
+import { runGpuExport } from "@hance/cli/src/pipeline";
 ```
 
 - [ ] **Step 3: Update shader imports in `packages/ui/app/gpu/shaders.ts`**
@@ -329,7 +329,7 @@ import type { EffectGroup as EffectGroupType } from "../../../schema";
 to:
 
 ```typescript
-import type { EffectGroup as EffectGroupType } from "@hancer/core";
+import type { EffectGroup as EffectGroupType } from "@hance/core";
 ```
 
 In `packages/ui/app/components/EffectGroup.tsx`, change:
@@ -341,7 +341,7 @@ import type { EffectGroup as EffectGroupType, OptionDef } from "../../../schema"
 to:
 
 ```typescript
-import type { EffectGroup as EffectGroupType, OptionDef } from "@hancer/core";
+import type { EffectGroup as EffectGroupType, OptionDef } from "@hance/core";
 ```
 
 - [ ] **Step 5: Commit**
@@ -518,7 +518,7 @@ to:
 import { createHeadlessRenderer } from "../../src/gpu/wgpu-renderer";
 ```
 
-In `packages/cli/__tests__/e2e/hancer.e2e.test.ts`, change `CLI_PATH`:
+In `packages/cli/__tests__/e2e/hance.e2e.test.ts`, change `CLI_PATH`:
 
 ```typescript
 const CLI_PATH = path.join(import.meta.dir, "../../src/cli.ts");
@@ -736,7 +736,7 @@ rm -rf src
 bun install
 ```
 
-This resolves the workspace links for `@hancer/core` and `@hancer/cli`.
+This resolves the workspace links for `@hance/core` and `@hance/cli`.
 
 - [ ] **Step 3: Update `CLAUDE.md` commands**
 

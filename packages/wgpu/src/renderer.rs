@@ -81,7 +81,7 @@ impl GpuRenderer {
         .ok_or("No GPU adapter found")?;
 
         let (device, queue) = pollster::block_on(adapter.request_device(&DeviceDescriptor {
-            label: Some("hancer-gpu"),
+            label: Some("hance-gpu"),
             ..Default::default()
         }, None))
         .map_err(|e| format!("Device request failed: {e}"))?;

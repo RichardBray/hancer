@@ -1,4 +1,4 @@
-# Openhancer Implementation Plan
+# Openhance Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
@@ -21,12 +21,12 @@
 
 ```json
 {
-  "name": "openhancer",
+  "name": "openhance",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
     "start": "bun run src/cli.ts",
-    "build": "bun build src/cli.ts --compile --outfile openhancer",
+    "build": "bun build src/cli.ts --compile --outfile openhance",
     "test": "bun test"
   }
 }
@@ -996,7 +996,7 @@ import type { FilmOptions, GradeOptions, HalationOptions, AberrationOptions, Wea
 import path from "path";
 
 const HELP_TEXT = `
-openhancer <input> [options]
+openhance <input> [options]
 
   Input/Output:
   --output, -o <path>       Output path (default: <input>_openhanced.<ext>)
@@ -1140,7 +1140,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
   }
 
   if (!help && !input) {
-    throw new Error("No input file provided. Usage: openhancer <input> [options]");
+    throw new Error("No input file provided. Usage: openhance <input> [options]");
   }
 
   if (!output && input) {
@@ -1212,7 +1212,7 @@ git commit -m "feat: add CLI with argument parsing, validation, and main entrypo
 
 **Files:**
 - Create: `src/__tests__/e2e/fixtures/generate-fixtures.sh`
-- Create: `src/__tests__/e2e/openhancer.e2e.test.ts`
+- Create: `src/__tests__/e2e/openhance.e2e.test.ts`
 
 **Step 1: Create test fixture generator**
 
@@ -1254,8 +1254,8 @@ import path from "path";
 const FIXTURES_DIR = path.join(import.meta.dir, "fixtures");
 const CLI_PATH = path.join(import.meta.dir, "../../../src/cli.ts");
 
-// Helper to run openhancer via bun
-async function runOpenhancer(args: string[]): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+// Helper to run openhance via bun
+async function runOpenhance(args: string[]): Promise<{ exitCode: number; stdout: string; stderr: string }> {
   const proc = Bun.spawn(["bun", "run", CLI_PATH, ...args], {
     stdout: "pipe",
     stderr: "pipe",
@@ -1275,7 +1275,7 @@ function cleanup(files: string[]) {
   }
 }
 
-describe("e2e: openhancer", () => {
+describe("e2e: openhance", () => {
   beforeAll(async () => {
     // Generate fixtures if missing
     if (!existsSync(path.join(FIXTURES_DIR, "test.mp4"))) {
@@ -1297,39 +1297,39 @@ describe("e2e: openhancer", () => {
   });
 
   it("prints help with --help", async () => {
-    const { exitCode, stdout } = await runOpenhancer(["--help"]);
+    const { exitCode, stdout } = await runOpenhance(["--help"]);
     expect(exitCode).toBe(0);
-    expect(stdout).toContain("openhancer <input>");
+    expect(stdout).toContain("openhance <input>");
     expect(stdout).toContain("--output");
   });
 
   it("exits with error on no input", async () => {
-    const { exitCode, stderr } = await runOpenhancer([]);
+    const { exitCode, stderr } = await runOpenhance([]);
     expect(exitCode).not.toBe(0);
     expect(stderr).toContain("No input file");
   });
 
   it("exits with error on unknown flag", async () => {
-    const { exitCode, stderr } = await runOpenhancer(["test.mp4", "--bogus"]);
+    const { exitCode, stderr } = await runOpenhance(["test.mp4", "--bogus"]);
     expect(exitCode).not.toBe(0);
     expect(stderr).toContain("Unknown flag");
   });
 
   it("exits with error on out-of-range flag", async () => {
-    const { exitCode, stderr } = await runOpenhancer(["test.mp4", "--lift", "0.9"]);
+    const { exitCode, stderr } = await runOpenhance(["test.mp4", "--lift", "0.9"]);
     expect(exitCode).not.toBe(0);
     expect(stderr).toContain("must be between");
   });
 
   it("exits with error on missing input file", async () => {
-    const { exitCode, stderr } = await runOpenhancer(["nonexistent.mp4"]);
+    const { exitCode, stderr } = await runOpenhance(["nonexistent.mp4"]);
     expect(exitCode).not.toBe(0);
     expect(stderr).toContain("not found");
   });
 
   it("processes an image (png) with defaults", async () => {
     cleanup(["test_openhanced.png"]);
-    const { exitCode, stdout, stderr } = await runOpenhancer([
+    const { exitCode, stdout, stderr } = await runOpenhance([
       path.join(FIXTURES_DIR, "test.png"),
     ]);
     if (exitCode !== 0) console.error("FFmpeg stderr:", stderr);
@@ -1341,7 +1341,7 @@ describe("e2e: openhancer", () => {
 
   it("processes a video (mp4) with defaults", async () => {
     cleanup(["test_openhanced.mp4"]);
-    const { exitCode, stderr } = await runOpenhancer([
+    const { exitCode, stderr } = await runOpenhance([
       path.join(FIXTURES_DIR, "test.mp4"),
     ]);
     if (exitCode !== 0) console.error("FFmpeg stderr:", stderr);
@@ -1351,7 +1351,7 @@ describe("e2e: openhancer", () => {
 
   it("processes a .mov file", async () => {
     cleanup(["test_openhanced.mov"]);
-    const { exitCode, stderr } = await runOpenhancer([
+    const { exitCode, stderr } = await runOpenhance([
       path.join(FIXTURES_DIR, "test.mov"),
     ]);
     if (exitCode !== 0) console.error("FFmpeg stderr:", stderr);
@@ -1362,7 +1362,7 @@ describe("e2e: openhancer", () => {
   it("respects --output flag", async () => {
     cleanup(["custom_output.mp4"]);
     const outPath = path.join(FIXTURES_DIR, "custom_output.mp4");
-    const { exitCode, stderr } = await runOpenhancer([
+    const { exitCode, stderr } = await runOpenhance([
       path.join(FIXTURES_DIR, "test.mp4"),
       "-o", outPath,
     ]);
@@ -1373,7 +1373,7 @@ describe("e2e: openhancer", () => {
 
   it("processes video with custom effect parameters", async () => {
     cleanup(["test_openhanced.mp4"]);
-    const { exitCode, stderr } = await runOpenhancer([
+    const { exitCode, stderr } = await runOpenhance([
       path.join(FIXTURES_DIR, "test.mp4"),
       "--lift", "0.1",
       "--crush", "0.08",
@@ -1429,17 +1429,17 @@ Expected: All tests PASS
 **Step 2: Build the binary**
 
 Run: `bun run build`
-Expected: Produces `openhancer` binary in project root
+Expected: Produces `openhance` binary in project root
 
 **Step 3: Verify help output**
 
-Run: `./openhancer --help`
+Run: `./openhance --help`
 Expected: Prints the full flag reference
 
 **Step 4: Create oph symlink**
 
 ```bash
-ln -sf openhancer oph
+ln -sf openhance oph
 ```
 
 **Step 5: Commit**

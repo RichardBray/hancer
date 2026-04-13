@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { EffectGroup } from "./EffectGroup";
 import { SaveBar } from "./SaveBar";
-import type { EffectGroup as EffectGroupType } from "@hancer/core";
+import type { EffectGroup as EffectGroupType } from "@hance/core";
 
 interface Props {
   schema: EffectGroupType[];

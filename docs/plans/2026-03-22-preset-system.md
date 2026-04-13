@@ -4,7 +4,7 @@
 
 **Goal:** Add a JSON preset system so users can customize and share effect defaults without CLI flags.
 
-**Architecture:** Ship built-in presets in `presets/` at repo root. User presets in `~/.openhancer/presets/` override built-ins by name. `default.json` loads automatically; `--preset <name>` loads an alternative. CLI flags always override preset values. Rename `--preset` (FFmpeg encode preset) to `--encode-preset` to free the flag.
+**Architecture:** Ship built-in presets in `presets/` at repo root. User presets in `~/.openhance/presets/` override built-ins by name. `default.json` loads automatically; `--preset <name>` loads an alternative. CLI flags always override preset values. Rename `--preset` (FFmpeg encode preset) to `--encode-preset` to free the flag.
 
 **Tech Stack:** Bun (fs, path, os), JSON files, existing CLI/types infrastructure.
 
@@ -178,7 +178,7 @@ function builtinPresetsDir(): string {
 }
 
 function userPresetsDir(): string {
-  return join(homedir(), ".openhancer", "presets");
+  return join(homedir(), ".openhance", "presets");
 }
 
 export function loadPreset(name: string): PresetData {
@@ -290,7 +290,7 @@ git commit -m "refactor(cli): integrate preset system, rename --preset to --enco
 **Step 1: Add Presets section after Usage, update Options table**
 
 Add documentation for:
-- How presets work (built-in vs user `~/.openhancer/presets/`)
+- How presets work (built-in vs user `~/.openhance/presets/`)
 - Preset JSON structure with example
 - Creating custom presets
 - `--preset` flag usage

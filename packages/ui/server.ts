@@ -1,6 +1,6 @@
-import { EFFECT_SCHEMA, loadPreset, builtinPresetsDir, userPresetsDir, probe } from "@hancer/core";
-import type { PresetData } from "@hancer/core";
-import { runGpuExport } from "@hancer/cli/src/pipeline";
+import { EFFECT_SCHEMA, loadPreset, builtinPresetsDir, userPresetsDir, probe } from "@hance/core";
+import type { PresetData } from "@hance/core";
+import { runGpuExport } from "@hance/cli/src/pipeline";
 import { join } from "node:path";
 import { existsSync, readdirSync, mkdirSync, writeFileSync, unlinkSync, renameSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -20,7 +20,7 @@ function listLooks(): string[] {
 }
 
 function invalidateThumbnailCache(name: string) {
-  const cachePath = join(tmpdir(), "hancer-thumbnails", `${name}.jpg`);
+  const cachePath = join(tmpdir(), "hance-thumbnails", `${name}.jpg`);
   if (existsSync(cachePath)) unlinkSync(cachePath);
 }
 
@@ -157,7 +157,7 @@ export function createServer(port: number) {
         if (!name) return new Response("name required", { status: 400 });
 
         // Check cache
-        const cacheDir = join(tmpdir(), "hancer-thumbnails");
+        const cacheDir = join(tmpdir(), "hance-thumbnails");
         if (!existsSync(cacheDir)) mkdirSync(cacheDir, { recursive: true });
         const cachePath = join(cacheDir, `${name}.jpg`);
         if (existsSync(cachePath)) {
@@ -218,7 +218,7 @@ export function createServer(port: number) {
         }
 
         const params: PresetData = JSON.parse(paramsJson);
-        const tempDir = join(tmpdir(), "hancer-export");
+        const tempDir = join(tmpdir(), "hance-export");
         if (!existsSync(tempDir)) mkdirSync(tempDir, { recursive: true });
         const inputPath = join(tempDir, file.name);
         await Bun.write(inputPath, file);
@@ -263,7 +263,7 @@ export function createServer(port: number) {
 
       if (url.pathname === "/api/download" && req.method === "GET") {
         const filePath = url.searchParams.get("path");
-        const allowedDir = join(tmpdir(), "hancer-export");
+        const allowedDir = join(tmpdir(), "hance-export");
         if (!filePath || !filePath.startsWith(allowedDir + "/") || !existsSync(filePath)) {
           return new Response("File not found", { status: 404 });
         }

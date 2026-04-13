@@ -1,11 +1,11 @@
 import { existsSync } from "node:fs";
-import { probe, applyPreset } from "@hancer/core";
-import type { PresetData, FilmOptions } from "@hancer/core";
+import { probe, applyPreset } from "@hance/core";
+import type { PresetData, FilmOptions } from "@hance/core";
 import { runGpuExport } from "./pipeline";
 import path from "node:path";
 
 const HELP_TEXT = `
-hancer <input> [options]
+hance <input> [options]
 
   Input/Output:
   --output, -o <path>       Output path (default: <input>_hanced.<ext>)
@@ -228,7 +228,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
   }
 
   if (!help && !input) {
-    throw new Error("No input file provided. Usage: hancer <input> [options]");
+    throw new Error("No input file provided. Usage: hance <input> [options]");
   }
 
   if (!output && input) {
@@ -271,7 +271,7 @@ async function main() {
   const args = process.argv.slice(2);
 
   if (isSubcommand(args)) {
-    const { startUI } = await import("@hancer/ui/server");
+    const { startUI } = await import("@hance/ui/server");
     const portIdx = args.indexOf("--port");
     const port = portIdx !== -1 ? parseInt(args[portIdx + 1], 10) : 4800;
     const open = !args.includes("--no-open");

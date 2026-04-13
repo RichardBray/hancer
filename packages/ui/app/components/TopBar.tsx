@@ -92,7 +92,7 @@ export function TopBar({ filename, file, params, canvas, renderer, isVideo }: Pr
 
   return (
     <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-800 bg-zinc-900">
-      <span className="text-sm font-semibold text-zinc-200">hancer</span>
+      <span className="text-sm font-semibold text-zinc-200">hance</span>
 
       <span className="text-xs text-zinc-500 truncate max-w-xs">
         {filename || ""}

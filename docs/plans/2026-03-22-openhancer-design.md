@@ -1,13 +1,13 @@
-# Openhancer — Design Document
+# Openhance — Design Document
 
 **Date:** 2026-03-22
 **Status:** Approved
 
 ## Overview
 
-Openhancer is a single-binary CLI tool that applies cinematic film effects to video and images in a single FFmpeg pass. Built with Bun and TypeScript, compiled to a standalone binary.
+Openhance is a single-binary CLI tool that applies cinematic film effects to video and images in a single FFmpeg pass. Built with Bun and TypeScript, compiled to a standalone binary.
 
-**Binary names:** `openhancer` (primary), `oph` (symlink alias)
+**Binary names:** `openhance` (primary), `oph` (symlink alias)
 
 **Target users:** The author and other developers. Not aimed at film professionals.
 
@@ -40,7 +40,7 @@ type EffectFn = (input: string, options: EffectOptions) => FilterResult
 ## Project Structure
 
 ```
-openhancer/
+openhance/
 ├── src/
 │   ├── cli.ts
 │   ├── pipeline.ts
@@ -144,7 +144,7 @@ grade → halation → aberration → weave
 ## CLI Flags
 
 ```
-openhancer <input> [options]
+openhance <input> [options]
 
   Input/Output:
   --output, -o <path>       Output path (default: <input>_openhanced.<ext>)
@@ -192,11 +192,11 @@ Parse `out_time_ms` from FFmpeg's `-progress pipe:1`, divide by `duration * 1_00
 
 ```json
 {
-  "name": "openhancer",
+  "name": "openhance",
   "version": "1.0.0",
   "scripts": {
     "start": "bun run src/cli.ts",
-    "build": "bun build src/cli.ts --compile --outfile openhancer"
+    "build": "bun build src/cli.ts --compile --outfile openhance"
   }
 }
 ```

@@ -19,7 +19,7 @@ export async function createHeadlessRenderer(): Promise<HeadlessRenderer> {
 
   function sidecarPath(): string {
     // Check for bundled binary next to CLI, then fall back to dev path
-    const devPath = join(import.meta.dir, "..", "..", "..", "wgpu", "target", "release", "hancer-gpu");
+    const devPath = join(import.meta.dir, "..", "..", "..", "wgpu", "target", "release", "hance-gpu");
     return devPath;
   }
 

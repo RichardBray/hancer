@@ -11,7 +11,7 @@ fn main() {
     let init_json = match std::env::args().nth(1) {
         Some(arg) => arg,
         None => {
-            eprintln!("Usage: hancer-gpu <init-json>");
+            eprintln!("Usage: hance-gpu <init-json>");
             std::process::exit(1);
         }
     };
