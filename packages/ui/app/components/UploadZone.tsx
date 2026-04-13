@@ -1,23 +1,21 @@
-import { useCallback } from "react";
-
 interface Props {
   onFile: (file: File) => void;
 }
 
 export function UploadZone({ onFile }: Props) {
-  const onDrop = useCallback((e: React.DragEvent) => {
+  function onDrop(e: React.DragEvent) {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
     if (file) onFile(file);
-  }, [onFile]);
+  }
 
-  const openPicker = useCallback(() => {
+  function openPicker() {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*,video/*";
     input.onchange = () => { if (input.files?.[0]) onFile(input.files[0]); };
     input.click();
-  }, [onFile]);
+  }
 
   return (
     <div

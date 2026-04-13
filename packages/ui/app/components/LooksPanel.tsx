@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import { LookCard } from "./LookCard";
 import { LookContextMenu } from "./LookContextMenu";
 import { NewLookModal } from "./NewLookModal";
@@ -33,34 +33,34 @@ export function LooksPanel({
   const [lookInfo, setLookInfo] = useState<{ name: string; description?: string; keywords?: string[]; characteristics?: string[] } | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
 
-  const handleContextMenu = useCallback((e: React.MouseEvent, name: string) => {
+  function handleContextMenu(e: React.MouseEvent, name: string) {
     e.preventDefault();
     setContextMenu({ x: e.clientX, y: e.clientY, name });
-  }, []);
+  }
 
-  const handleImport = useCallback(() => {
+  function handleImport() {
     importRef.current?.click();
-  }, []);
+  }
 
-  const handleImportFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (file) {
       onImportLook(file);
       e.target.value = "";
     }
-  }, [onImportLook]);
+  }
 
-  const startRename = useCallback((name: string) => {
+  function startRename(name: string) {
     setRenamingLook(name);
     setRenameValue(name);
-  }, []);
+  }
 
-  const commitRename = useCallback(() => {
+  function commitRename() {
     if (renamingLook && renameValue.trim() && renameValue.trim() !== renamingLook) {
       onRenameLook(renamingLook, renameValue.trim());
     }
     setRenamingLook(null);
-  }, [renamingLook, renameValue, onRenameLook]);
+  }
 
   return (
     <div className="flex flex-col h-full">

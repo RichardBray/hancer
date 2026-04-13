@@ -1,4 +1,4 @@
-import { useRef, useCallback } from "react";
+import { useRef } from "react";
 
 interface Props {
   x: number;
@@ -12,11 +12,11 @@ interface Props {
 export function LookContextMenu({ x, y, onRename, onDelete, onInfo, onClose }: Props) {
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const handleBackdropMouseDown = useCallback((e: React.MouseEvent) => {
+  function handleBackdropMouseDown(e: React.MouseEvent) {
     if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
       onClose();
     }
-  }, [onClose]);
+  }
 
   return (
     <div className="fixed inset-0 z-40" onMouseDown={handleBackdropMouseDown}>

@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect } from "react";
 import { createRenderer, type Renderer, type PreviewParams } from "../gpu/renderer";
 import { fitPreviewSize } from "../mediaSizing";
 

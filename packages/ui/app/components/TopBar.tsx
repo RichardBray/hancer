@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import type { Renderer } from "../gpu/renderer";
 
 interface Props {
@@ -18,7 +18,7 @@ export function TopBar({ filename, file, params, canvas, renderer, isVideo }: Pr
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const downloadImage = useCallback(async () => {
+  async function downloadImage() {
     if (!renderer || !canvas) return;
     const rgba = await renderer.readPixels();
     if (rgba.length === 0) return;
@@ -35,9 +35,9 @@ export function TopBar({ filename, file, params, canvas, renderer, isVideo }: Pr
     a.download = file!.name.replace(/\.[^.]+$/, "_hanced.png");
     a.click();
     URL.revokeObjectURL(url);
-  }, [renderer, canvas, file]);
+  }
 
-  const startExport = useCallback(async () => {
+  async function startExport() {
     if (!file) return;
     setState("uploading");
     setProgress(0);
@@ -88,7 +88,7 @@ export function TopBar({ filename, file, params, canvas, renderer, isVideo }: Pr
       setState("error");
       setError((err as Error).message);
     }
-  }, [file, params]);
+  }
 
   return (
     <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-800 bg-zinc-900">
