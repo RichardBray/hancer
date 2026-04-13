@@ -4,7 +4,7 @@ import { homedir } from "os";
 import type {
   ColorSettingsOptions, HalationOptions, AberrationOptions,
   BloomOptions, GrainOptions, VignetteOptions, SplitToneOptions, CameraShakeOptions,
-  OutputCodec,
+  OutputCodec, PixelFormat,
 } from "./types";
 
 export interface PresetData {
@@ -16,7 +16,7 @@ interface EffectOptions {
   codec: OutputCodec;
   crf: number;
   blend: number;
-  pixelFormat: string;
+  pixelFormat: PixelFormat;
   colorSettings: ColorSettingsOptions;
   halation: HalationOptions;
   aberration: AberrationOptions;
