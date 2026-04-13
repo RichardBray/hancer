@@ -193,7 +193,7 @@ Create the Cargo project with dependencies and a minimal main that reads JSON fr
 
 ```toml
 [package]
-name = "openhance-gpu"
+name = "hance-gpu"
 version = "0.1.0"
 edition = "2021"
 
@@ -955,7 +955,7 @@ impl GpuRenderer {
         .ok_or("No GPU adapter found")?;
 
         let (device, queue) = pollster::block_on(adapter.request_device(&DeviceDescriptor {
-            label: Some("openhance-gpu"),
+            label: Some("hance-gpu"),
             ..Default::default()
         }, None))
         .map_err(|e| format!("Device request failed: {e}"))?;
@@ -1364,7 +1364,7 @@ Verify the Rust binary compiles and can process a frame.
 
 Run: `cd sidecar && cargo build --release`
 
-Expected: Builds successfully. Binary at `sidecar/target/release/openhance-gpu`.
+Expected: Builds successfully. Binary at `sidecar/target/release/hance-gpu`.
 
 - [ ] **Step 2: Write a quick smoke test script**
 
@@ -1376,7 +1376,7 @@ use std::process::{Command, Stdio};
 
 #[test]
 fn sidecar_processes_one_frame() {
-    let binary = env!("CARGO_BIN_EXE_openhance-gpu");
+    let binary = env!("CARGO_BIN_EXE_hance-gpu");
 
     let mut child = Command::new(binary)
         .stdin(Stdio::piped())
@@ -1472,7 +1472,7 @@ export async function createHeadlessRenderer(): Promise<HeadlessRenderer> {
 
   function sidecarPath(): string {
     // Check for bundled binary next to CLI, then fall back to dev path
-    const devPath = join(import.meta.dir, "..", "..", "sidecar", "target", "release", "openhance-gpu");
+    const devPath = join(import.meta.dir, "..", "..", "sidecar", "target", "release", "hance-gpu");
     return devPath;
   }
 
@@ -1651,7 +1651,7 @@ Remove the `"@playwright/test"` line from `devDependencies` and remove the `"tes
 {
   "scripts": {
     "start": "bun run src/cli.ts",
-    "build": "bun run build:gpu && bun run build:ui && bun build src/cli.ts --compile --outfile openhance",
+    "build": "bun run build:gpu && bun run build:ui && bun build src/cli.ts --compile --outfile hance",
     "build:ui": "bun run scripts/build-ui.ts",
     "build:gpu": "cd sidecar && cargo build --release",
     "test": "bun test"

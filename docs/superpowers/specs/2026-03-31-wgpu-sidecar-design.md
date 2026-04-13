@@ -2,7 +2,7 @@
 
 **Goal:** Replace the Playwright headless Chrome renderer with a native Rust sidecar using `wgpu` for GPU-accelerated video/image export. Headless Chrome does not reliably support WebGPU, making it unsuitable for video processing.
 
-**Architecture:** A standalone Rust binary (`openhance-gpu`) communicates with Bun over stdin/stdout pipes. It receives raw RGBA frames, runs the same WGSL shader chain, and writes rendered RGBA frames back. The browser preview path is unchanged.
+**Architecture:** A standalone Rust binary (`hance-gpu`) communicates with Bun over stdin/stdout pipes. It receives raw RGBA frames, runs the same WGSL shader chain, and writes rendered RGBA frames back. The browser preview path is unchanged.
 
 ---
 
@@ -160,7 +160,7 @@ export interface HeadlessRenderer {
 ```
 
 Implementation:
-- `createHeadlessRenderer()` spawns `sidecar/target/release/openhance-gpu` via `Bun.spawn`
+- `createHeadlessRenderer()` spawns `sidecar/target/release/hance-gpu` via `Bun.spawn`
 - `init()` writes the length-prefixed JSON init message to stdin
 - `renderFrame()` writes raw RGBA bytes to stdin, reads `width*height*4` bytes from stdout
 - `close()` closes stdin, waits for process exit
@@ -189,14 +189,14 @@ Implementation:
 cd sidecar && cargo build --release
 ```
 
-**Binary location:** `sidecar/target/release/openhance-gpu`
+**Binary location:** `sidecar/target/release/hance-gpu`
 
 The Bun side resolves the sidecar path relative to `import.meta.dir` during dev. For distribution, the sidecar binary is placed alongside the compiled Bun binary.
 
 Add to `package.json` scripts:
 ```json
 "build:gpu": "cd sidecar && cargo build --release",
-"build": "bun run build:gpu && bun build src/cli.ts --compile --outfile openhance"
+"build": "bun run build:gpu && bun build src/cli.ts --compile --outfile hance"
 ```
 
 ---
