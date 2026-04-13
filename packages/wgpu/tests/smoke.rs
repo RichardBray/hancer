@@ -5,31 +5,26 @@ use std::process::{Command, Stdio};
 fn sidecar_processes_one_frame() {
     let binary = env!("CARGO_BIN_EXE_hancer-gpu");
 
+    let width: u32 = 4;
+    let height: u32 = 4;
+    let frame_size = (width * height * 4) as usize;
+
+    // Pass init JSON as CLI argument
+    let init_json = serde_json::json!({
+        "width": width,
+        "height": height,
+        "params": {}
+    });
+
     let mut child = Command::new(binary)
+        .arg(init_json.to_string())
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
         .expect("Failed to spawn sidecar");
 
-    let width: u32 = 4;
-    let height: u32 = 4;
-    let frame_size = (width * height * 4) as usize;
-
-    // Send init message
-    let init_json = serde_json::json!({
-        "width": width,
-        "height": height,
-        "params": {}
-    });
-    let init_bytes = serde_json::to_vec(&init_json).unwrap();
-    let len_bytes = (init_bytes.len() as u32).to_le_bytes();
-
-    let stdin = child.stdin.as_mut().unwrap();
-    stdin.write_all(&len_bytes).unwrap();
-    stdin.write_all(&init_bytes).unwrap();
-
-    // Send one red frame
+    // Send one red frame on stdin
     let mut frame = vec![0u8; frame_size];
     for i in 0..(width * height) as usize {
         frame[i * 4] = 255;     // R
@@ -37,6 +32,8 @@ fn sidecar_processes_one_frame() {
         frame[i * 4 + 2] = 0;   // B
         frame[i * 4 + 3] = 255; // A
     }
+
+    let stdin = child.stdin.as_mut().unwrap();
     stdin.write_all(&frame).unwrap();
 
     // Close stdin to signal end

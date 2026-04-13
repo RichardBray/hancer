@@ -4,7 +4,7 @@ import { LookContextMenu } from "./LookContextMenu";
 import { NewLookModal } from "./NewLookModal";
 import { DeleteLookModal } from "./DeleteLookModal";
 import { LookInfoModal } from "./LookInfoModal";
-import { ImportIcon, PlusIcon } from "./Icons";
+import { ImportIcon, NoLookIcon, PlusIcon } from "./Icons";
 import type { LookMeta } from "../hooks/useLooks";
 
 interface Props {
@@ -95,10 +95,7 @@ export function LooksPanel({
             }`}
           >
             <div className="aspect-square bg-zinc-800 flex items-center justify-center">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-zinc-500">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
-              </svg>
+              <NoLookIcon className="w-6 h-6 text-zinc-500" />
             </div>
             <div className="px-1.5 py-1">
               <span className="text-[11px] text-zinc-400 truncate block">No Look</span>
