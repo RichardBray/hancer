@@ -6,7 +6,7 @@ const FIXTURES_DIR = path.join(import.meta.dir, "fixtures");
 const CLI_PATH = path.join(import.meta.dir, "../../src/cli.ts");
 
 // Helper to run hance via bun
-async function runOpenhance(args: string[]): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+async function runHance(args: string[]): Promise<{ exitCode: number; stdout: string; stderr: string }> {
   const proc = Bun.spawn(["bun", "run", CLI_PATH, ...args], {
     stdout: "pipe",
     stderr: "pipe",
@@ -48,7 +48,7 @@ describe("e2e: hance", () => {
   });
 
   it("prints help with --help", async () => {
-    const { exitCode, stdout } = await runOpenhance(["--help"]);
+    const { exitCode, stdout } = await runHance(["--help"]);
     expect(exitCode).toBe(0);
     expect(stdout).toContain("hance <input>");
     expect(stdout).toContain("--output");
@@ -57,32 +57,32 @@ describe("e2e: hance", () => {
   });
 
   it("exits with error on no input", async () => {
-    const { exitCode, stderr } = await runOpenhance([]);
+    const { exitCode, stderr } = await runHance([]);
     expect(exitCode).not.toBe(0);
     expect(stderr).toContain("No input file");
   });
 
   it("exits with error on unknown flag", async () => {
-    const { exitCode, stderr } = await runOpenhance(["test.mp4", "--bogus"]);
+    const { exitCode, stderr } = await runHance(["test.mp4", "--bogus"]);
     expect(exitCode).not.toBe(0);
     expect(stderr).toContain("Unknown flag");
   });
 
   it("exits with error on out-of-range flag", async () => {
-    const { exitCode, stderr } = await runOpenhance(["test.mp4", "--exposure", "10"]);
+    const { exitCode, stderr } = await runHance(["test.mp4", "--exposure", "10"]);
     expect(exitCode).not.toBe(0);
     expect(stderr).toContain("must be between");
   });
 
   it("exits with error on missing input file", async () => {
-    const { exitCode, stderr } = await runOpenhance(["nonexistent.mp4"]);
+    const { exitCode, stderr } = await runHance(["nonexistent.mp4"]);
     expect(exitCode).not.toBe(0);
     expect(stderr).toContain("not found");
   });
 
   it("processes an image (png) with defaults", async () => {
     cleanup(["test_hanced.png"]);
-    const { exitCode, stdout, stderr } = await runOpenhance([
+    const { exitCode, stdout, stderr } = await runHance([
       path.join(FIXTURES_DIR, "test.png"),
     ]);
     if (exitCode !== 0) console.error("FFmpeg stderr:", stderr);
@@ -94,7 +94,7 @@ describe("e2e: hance", () => {
 
   it("processes a video (mp4) with defaults", async () => {
     cleanup(["test_hanced.mp4"]);
-    const { exitCode, stderr } = await runOpenhance([
+    const { exitCode, stderr } = await runHance([
       path.join(FIXTURES_DIR, "test.mp4"),
     ]);
     if (exitCode !== 0) console.error("FFmpeg stderr:", stderr);
@@ -104,7 +104,7 @@ describe("e2e: hance", () => {
 
   it("processes a .mov file", async () => {
     cleanup(["test_hanced.mov"]);
-    const { exitCode, stderr } = await runOpenhance([
+    const { exitCode, stderr } = await runHance([
       path.join(FIXTURES_DIR, "test.mov"),
     ]);
     if (exitCode !== 0) console.error("FFmpeg stderr:", stderr);
@@ -115,7 +115,7 @@ describe("e2e: hance", () => {
   it("respects --output flag", async () => {
     cleanup(["custom_output.mp4"]);
     const outPath = path.join(FIXTURES_DIR, "custom_output.mp4");
-    const { exitCode, stderr } = await runOpenhance([
+    const { exitCode, stderr } = await runHance([
       path.join(FIXTURES_DIR, "test.mp4"),
       "-o", outPath,
     ]);
@@ -126,7 +126,7 @@ describe("e2e: hance", () => {
 
   it("processes video with custom effect parameters", async () => {
     cleanup(["test_hanced.mp4"]);
-    const { exitCode, stderr } = await runOpenhance([
+    const { exitCode, stderr } = await runHance([
       path.join(FIXTURES_DIR, "test.mp4"),
       "--exposure", "0.1",
       "--contrast", "1.2",
@@ -147,7 +147,7 @@ describe("e2e: hance", () => {
 
   it("processes with disabled effects via --no flags", async () => {
     cleanup(["test_hanced.png"]);
-    const { exitCode, stderr } = await runOpenhance([
+    const { exitCode, stderr } = await runHance([
       path.join(FIXTURES_DIR, "test.png"),
       "--no-halation",
       "--no-bloom",
@@ -160,7 +160,7 @@ describe("e2e: hance", () => {
 
   it("processes with global blend", async () => {
     cleanup(["test_hanced.png"]);
-    const { exitCode, stderr } = await runOpenhance([
+    const { exitCode, stderr } = await runHance([
       path.join(FIXTURES_DIR, "test.png"),
       "--blend", "0.5",
     ]);

@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "openhance",
+      "name": "hance",
       "devDependencies": {
         "@types/bun": "^1.3.11",
       },
