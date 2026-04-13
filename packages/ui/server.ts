@@ -287,7 +287,7 @@ export function createServer(port: number) {
   });
 }
 
-const BANNER = [
+const STARTUP_ASCII_ART = [
   "",
   "\x1b[36m  \u2588\u2588\u2557  \u2588\u2588\u2557 \u2588\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2588\u2557   \u2588\u2588\u2557 \u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2557",
   "  \u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255d\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255d\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557",
@@ -299,7 +299,7 @@ const BANNER = [
 
 export async function startUI(port: number, openBrowser = true): Promise<void> {
   const server = createServer(port);
-  console.log(BANNER);
+  console.log(STARTUP_ASCII_ART);
   console.log(`\n  \x1b[2mRunning at\x1b[0m \x1b[1mhttp://localhost:${server.port}\x1b[0m\n`);
   if (openBrowser) {
     const open = process.platform === "darwin" ? "open" : "xdg-open";

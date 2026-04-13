@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 
 interface Props {
   label: string;
@@ -16,12 +16,12 @@ export function RangeSlider({ label, value, min, max, step, onChange, disabled, 
   const [editValue, setEditValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const startEdit = useCallback(() => {
+  function startEdit() {
     setEditing(true);
     setEditValue(String(value));
     // Focus after React renders the input
     requestAnimationFrame(() => inputRef.current?.select());
-  }, [value]);
+  }
 
   function commitEdit() {
     const parsed = parseFloat(editValue);
