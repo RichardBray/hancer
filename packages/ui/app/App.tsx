@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useUpload } from "./hooks/useUpload";
 import { useLooks } from "./hooks/useLooks";
 import { useResizable } from "./hooks/useResizable";
+import { useHistory } from "./hooks/useHistory";
 import { TopBar } from "./components/TopBar";
 import { LooksPanel } from "./components/LooksPanel";
 import { AdjustmentsPanel } from "./components/AdjustmentsPanel";
@@ -26,8 +27,29 @@ export function App() {
 
   const {
     looks, activeLook, activeLookParams,
-    refreshLooks, loadLook, clearLook, saveLook, createLook, deleteLook, renameLook, importLook,
+    refreshLooks, loadLook, clearLook, saveLook, createLook, deleteLook, renameLook, importLook, restoreActiveLook,
   } = useLooks();
+
+  // History tracks {params, activeLook}. Only these are undoable — file
+  // uploads, look CRUD, hover previews, scrub, and resizing are not.
+  const history = useHistory<{ params: PreviewParams; activeLook: string | null }>(
+    { params: {}, activeLook: null },
+  );
+
+  const activeLookRef = useRef<string | null>(activeLook);
+  activeLookRef.current = activeLook;
+  const historyRef = useRef(history);
+  historyRef.current = history;
+
+  // Reading from setParams' updater guarantees we see pending state from
+  // the same event — a toggle's onChange + onCommit run before React
+  // re-renders, so paramsRef would otherwise be stale by one change.
+  const commitHistory = useCallback(() => {
+    setParams(p => {
+      historyRef.current.commit({ params: p, activeLook: activeLookRef.current });
+      return p;
+    });
+  }, []);
 
   // Fetch schema and looks on mount — external server data
   useEffect(() => {
@@ -39,6 +61,9 @@ export function App() {
         disableAll[group.enableKey] = true;
       }
       setParams(disableAll);
+      // Seed history with the initial No-Look snapshot so the first user
+      // change has something to undo back to.
+      historyRef.current.commit({ params: disableAll, activeLook: null });
     });
     refreshLooks();
   }, []);
@@ -76,6 +101,7 @@ export function App() {
     }
     setParams(disableAll);
     setTimeout(() => setAnimating(false), 350);
+    historyRef.current.commit({ params: disableAll, activeLook: null });
   }, [clearLook, schema]);
 
   const handleLookSelect = useCallback(async (name: string) => {
@@ -83,6 +109,7 @@ export function App() {
     setAnimating(true);
     setParams(lookParams);
     setTimeout(() => setAnimating(false), 350);
+    historyRef.current.commit({ params: lookParams, activeLook: name });
   }, [loadLook]);
 
   const handleLookHover = useCallback((name: string) => {
@@ -119,6 +146,45 @@ export function App() {
   const handleCreateLook = useCallback((name: string, metadata: { description: string; keywords: string[]; characteristics: string[] }) => {
     createLook(name, params, metadata);
   }, [createLook, params]);
+
+  const applySnapshot = useCallback((snap: { params: PreviewParams; activeLook: string | null } | null) => {
+    if (!snap) return;
+    setAnimating(true);
+    setParams(snap.params);
+    restoreActiveLook(snap.activeLook);
+    setTimeout(() => setAnimating(false), 350);
+  }, [restoreActiveLook]);
+
+  // Cmd/Ctrl+Z — undo. Shift adds redo. Skip when a text field is focused
+  // so native text-input undo keeps working inside modals.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod || e.key.toLowerCase() !== "z") return;
+      const target = e.target as HTMLElement | null;
+      if (target) {
+        const tag = target.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || target.isContentEditable) {
+          // Exception: the range input's keyboard arrows fire commits already
+          // and benefit from app-level undo. Let undo/redo work from range.
+          const inputType = (target as HTMLInputElement).type;
+          if (tag === "INPUT" && inputType === "range") {
+            // fall through to app undo
+          } else {
+            return;
+          }
+        }
+      }
+      e.preventDefault();
+      if (e.shiftKey) {
+        applySnapshot(historyRef.current.redo());
+      } else {
+        applySnapshot(historyRef.current.undo());
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [applySnapshot]);
 
   if (!objectUrl) {
     return (
@@ -183,6 +249,7 @@ export function App() {
             schema={schema}
             values={params}
             onChange={handleParamChange}
+            onCommit={commitHistory}
             activeLookParams={activeLookParams}
             onSave={handleSave}
             onSaveAsNew={handleSaveAsNew}

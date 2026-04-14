@@ -7,11 +7,12 @@ interface Props {
   max: number;
   step: number;
   onChange: (value: number) => void;
+  onCommit?: () => void;
   disabled?: boolean;
   animating?: boolean;
 }
 
-export function RangeSlider({ label, value, min, max, step, onChange, disabled, animating }: Props) {
+export function RangeSlider({ label, value, min, max, step, onChange, onCommit, disabled, animating }: Props) {
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -28,6 +29,7 @@ export function RangeSlider({ label, value, min, max, step, onChange, disabled, 
     if (!isNaN(parsed)) {
       const clamped = Math.max(min, Math.min(max, parsed));
       onChange(clamped);
+      onCommit?.();
     }
     setEditing(false);
   }
@@ -52,6 +54,8 @@ export function RangeSlider({ label, value, min, max, step, onChange, disabled, 
           step={step}
           value={value}
           onChange={e => onChange(parseFloat(e.target.value))}
+          onPointerUp={() => onCommit?.()}
+          onKeyUp={e => { if (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "Home" || e.key === "End") onCommit?.(); }}
           className={`absolute inset-0 w-full opacity-0 cursor-pointer ${animating ? "animating" : ""}`}
         />
         <div

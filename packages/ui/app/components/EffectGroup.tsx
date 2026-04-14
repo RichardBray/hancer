@@ -8,10 +8,11 @@ interface Props {
   group: EffectGroupType;
   values: Record<string, string | number | boolean>;
   onChange: (key: string, value: string | number | boolean) => void;
+  onCommit: () => void;
   animating: boolean;
 }
 
-export function EffectGroup({ group, values, onChange, animating }: Props) {
+export function EffectGroup({ group, values, onChange, onCommit, animating }: Props) {
   const [collapsed, setCollapsed] = useState(false);
   const enabled = values[group.enableKey] !== true;
 
@@ -31,7 +32,7 @@ export function EffectGroup({ group, values, onChange, animating }: Props) {
           type="checkbox"
           checked={enabled}
           onClick={e => e.stopPropagation()}
-          onChange={e => onChange(group.enableKey, !e.target.checked)}
+          onChange={e => { onChange(group.enableKey, !e.target.checked); onCommit(); }}
         />
       </div>
       {!collapsed && (
@@ -42,6 +43,7 @@ export function EffectGroup({ group, values, onChange, animating }: Props) {
               opt={opt}
               value={values[opt.key] ?? opt.default}
               onChange={v => onChange(opt.key, v)}
+              onCommit={onCommit}
               disabled={!enabled}
               animating={animating}
             />
@@ -52,10 +54,11 @@ export function EffectGroup({ group, values, onChange, animating }: Props) {
   );
 }
 
-function OptionControl({ opt, value, onChange, disabled, animating }: {
+function OptionControl({ opt, value, onChange, onCommit, disabled, animating }: {
   opt: OptionDef;
   value: string | number | boolean;
   onChange: (v: string | number | boolean) => void;
+  onCommit: () => void;
   disabled: boolean;
   animating: boolean;
 }) {
@@ -68,6 +71,7 @@ function OptionControl({ opt, value, onChange, disabled, animating }: {
         max={opt.max}
         step={opt.step}
         onChange={onChange}
+        onCommit={onCommit}
         disabled={disabled}
         animating={animating}
       />
@@ -79,7 +83,7 @@ function OptionControl({ opt, value, onChange, disabled, animating }: {
       <Toggle
         label={opt.label}
         checked={typeof value === "boolean" ? value : opt.default}
-        onChange={onChange}
+        onChange={v => { onChange(v); onCommit(); }}
         disabled={disabled}
       />
     );
@@ -91,7 +95,7 @@ function OptionControl({ opt, value, onChange, disabled, animating }: {
         label={opt.label}
         value={typeof value === "string" ? value : opt.default}
         choices={opt.choices}
-        onChange={onChange}
+        onChange={v => { onChange(v); onCommit(); }}
         disabled={disabled}
       />
     );

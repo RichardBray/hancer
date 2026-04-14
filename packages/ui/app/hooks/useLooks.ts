@@ -86,6 +86,26 @@ export function useLooks() {
     setActiveLookParams(null);
   }, []);
 
+  // Restore look state from history (undo/redo) without committing a new
+  // history entry. When name is null, clears the active look.
+  const restoreActiveLook = useCallback(async (name: string | null): Promise<void> => {
+    if (name === null) {
+      setActiveLook(null);
+      setActiveLookParams(null);
+      return;
+    }
+    const res = await fetch(`/api/look?name=${encodeURIComponent(name)}`);
+    if (!res.ok) {
+      // Look was deleted between snapshot and undo; clear rather than crash.
+      setActiveLook(null);
+      setActiveLookParams(null);
+      return;
+    }
+    const params = await res.json();
+    setActiveLook(name);
+    setActiveLookParams({ ...params });
+  }, []);
+
   const importLook = useCallback(async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -106,5 +126,6 @@ export function useLooks() {
     deleteLook,
     renameLook,
     importLook,
+    restoreActiveLook,
   };
 }

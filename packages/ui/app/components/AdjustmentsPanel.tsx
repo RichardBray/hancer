@@ -7,13 +7,14 @@ interface Props {
   schema: EffectGroupType[];
   values: Record<string, string | number | boolean>;
   onChange: (key: string, value: string | number | boolean) => void;
+  onCommit: () => void;
   activeLookParams: Record<string, string | number | boolean> | null;
   onSave: () => void;
   onSaveAsNew: () => void;
   animating: boolean;
 }
 
-export function AdjustmentsPanel({ schema, values, onChange, activeLookParams, onSave, onSaveAsNew, animating }: Props) {
+export function AdjustmentsPanel({ schema, values, onChange, onCommit, activeLookParams, onSave, onSaveAsNew, animating }: Props) {
   const hasChanges = activeLookParams !== null && Object.keys(activeLookParams).some(
     key => activeLookParams[key] !== values[key]
   );
@@ -31,6 +32,7 @@ export function AdjustmentsPanel({ schema, values, onChange, activeLookParams, o
             group={group}
             values={values}
             onChange={onChange}
+            onCommit={onCommit}
             animating={animating}
           />
         ))}
