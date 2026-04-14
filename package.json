@@ -5,9 +5,10 @@
   "workspaces": ["packages/core", "packages/cli", "packages/ui"],
   "scripts": {
     "start": "bun run packages/cli/src/cli.ts",
-    "build": "bun run build:wgpu && bun run build:ui && bun build packages/cli/src/cli.ts --compile --outfile hance",
+    "build": "bun run build:wgpu && bun run build:ui && bun build packages/cli/src/cli.ts --compile --define HANCE_VERSION=\"'${HANCE_VERSION:-dev}'\" --outfile hance",
     "build:ui": "bun run scripts/build-ui.ts",
     "build:wgpu": "cd packages/wgpu && ~/.cargo/bin/cargo build --release",
+    "release:local": "HANCE_VERSION=${HANCE_VERSION:-0.0.0-local} bun run build && bun run scripts/stage-release.ts && bun run scripts/pack-local.ts",
     "test": "bun test"
   },
   "devDependencies": {
