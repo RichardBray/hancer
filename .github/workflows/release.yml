@@ -1,0 +1,116 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to build (e.g. v0.1.0). Required for manual runs."
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-arm64
+            runner: macos-14
+          - platform: macos-x64
+            runner: macos-13
+          - platform: linux-x64
+            runner: ubuntu-latest
+          - platform: linux-arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: v
+        shell: bash
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          echo "tag=$TAG"            >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}"    >> "$GITHUB_OUTPUT"
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            packages/wgpu/target
+          key: ${{ matrix.platform }}-cargo-${{ hashFiles('packages/wgpu/Cargo.lock') }}
+
+      - name: Install ffmpeg (Linux, for tests only)
+        if: startsWith(matrix.platform, 'linux')
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - run: bun install --frozen-lockfile
+
+      - name: Build
+        env:
+          HANCE_VERSION: ${{ steps.v.outputs.version }}
+        run: bun run build
+
+      - name: Stage release dir
+        env:
+          HANCE_PLATFORM: ${{ matrix.platform }}
+        run: bun run scripts/stage-release.ts
+
+      - name: Create tarball
+        run: tar -czf hance-${{ matrix.platform }}.tar.gz -C dist hance-${{ matrix.platform }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hance-${{ matrix.platform }}
+          path: hance-${{ matrix.platform }}.tar.gz
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: v
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Generate checksums
+        run: |
+          cd artifacts
+          shasum -a 256 hance-*.tar.gz > checksums.txt
+          cat checksums.txt
+
+      - name: Copy install.sh
+        run: cp scripts/install.sh artifacts/install.sh
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.v.outputs.tag }}" \
+            --title "${{ steps.v.outputs.tag }}" \
+            --generate-notes \
+            artifacts/hance-*.tar.gz \
+            artifacts/checksums.txt \
+            artifacts/install.sh
