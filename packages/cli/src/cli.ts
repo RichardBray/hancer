@@ -4,6 +4,9 @@ import type { PresetData, FilmOptions, ExportPreset, OutputCodec } from "@hance/
 import { runGpuExport } from "./pipeline";
 import path from "node:path";
 
+declare const HANCE_VERSION: string | undefined;
+const VERSION: string = (typeof HANCE_VERSION !== "undefined" ? HANCE_VERSION : (process.env.HANCE_VERSION ?? "dev"));
+
 const HELP_TEXT = `
 hance <input> [options]
 
@@ -74,7 +77,8 @@ hance <input> [options]
   --no-camera-shake              Disable camera shake
 
   General:
-  --help, -h     Show this help
+  --help, -h                Show this help
+  --version, -v             Print version and exit
 `.trim();
 
 const KNOWN_FLAGS = new Set([
@@ -296,6 +300,11 @@ async function checkDependency(name: string): Promise<void> {
 
 async function main() {
   const args = process.argv.slice(2);
+
+  if (args.includes("--version") || args.includes("-v")) {
+    console.log(`hance ${VERSION}`);
+    process.exit(0);
+  }
 
   if (isSubcommand(args)) {
     const { startUI } = await import("@hance/ui/server");
