@@ -1,4 +1,4 @@
-import { join } from "node:path";
+import { sidecarPath } from "../sidecar-path";
 
 export interface HeadlessRenderer {
   init(width: number, height: number, params?: Record<string, unknown>): Promise<void>;
@@ -16,12 +16,6 @@ export async function createHeadlessRenderer(): Promise<HeadlessRenderer> {
   let frameSize = 0;
   let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
   let readBuffer = new Uint8Array(0);
-
-  function sidecarPath(): string {
-    // Check for bundled binary next to CLI, then fall back to dev path
-    const devPath = join(import.meta.dir, "..", "..", "..", "wgpu", "target", "release", "hance-gpu");
-    return devPath;
-  }
 
   async function readExactly(n: number): Promise<Uint8Array> {
     while (readBuffer.length < n) {

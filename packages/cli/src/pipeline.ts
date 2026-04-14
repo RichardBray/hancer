@@ -4,16 +4,13 @@ import { unlink } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import type { ProbeResult, OutputCodec, PixelFormat } from "@hance/core";
 import { parseProgress } from "./progress";
+import { sidecarPath } from "./sidecar-path";
 
 interface EncoderSettings {
   codec: OutputCodec;
   crf: number;
   encodePreset: string;
   pixelFormat: PixelFormat;
-}
-
-function sidecarPath(): string {
-  return join(import.meta.dir, "..", "..", "wgpu", "target", "release", "hance-gpu");
 }
 
 let cachedEncoders: Set<string> | null = null;
