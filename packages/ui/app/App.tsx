@@ -37,9 +37,9 @@ export function App() {
   );
 
   const activeLookRef = useRef<string | null>(activeLook);
-  activeLookRef.current = activeLook;
   const historyRef = useRef(history);
-  historyRef.current = history;
+  useEffect(() => { activeLookRef.current = activeLook; }, [activeLook]);
+  useEffect(() => { historyRef.current = history; }, [history]);
 
   // Reading from setParams' updater guarantees we see pending state from
   // the same event — a toggle's onChange + onCommit run before React
@@ -61,9 +61,9 @@ export function App() {
         disableAll[group.enableKey] = true;
       }
       setParams(disableAll);
-      // Seed history with the initial No-Look snapshot so the first user
-      // change has something to undo back to.
-      historyRef.current.commit({ params: disableAll, activeLook: null });
+      // Replace (not commit) the initial present so we don't leave the
+      // pre-schema empty `{}` snapshot reachable via undo.
+      history.replace({ params: disableAll, activeLook: null });
     });
     refreshLooks();
   }, []);
@@ -147,11 +147,11 @@ export function App() {
     createLook(name, params, metadata);
   }, [createLook, params]);
 
-  const applySnapshot = useCallback((snap: { params: PreviewParams; activeLook: string | null } | null) => {
+  const applySnapshot = useCallback(async (snap: { params: PreviewParams; activeLook: string | null } | null) => {
     if (!snap) return;
     setAnimating(true);
     setParams(snap.params);
-    restoreActiveLook(snap.activeLook);
+    await restoreActiveLook(snap.activeLook);
     setTimeout(() => setAnimating(false), 350);
   }, [restoreActiveLook]);
 

@@ -55,7 +55,10 @@ export function RangeSlider({ label, value, min, max, step, onChange, onCommit, 
           value={value}
           onChange={e => onChange(parseFloat(e.target.value))}
           onPointerUp={() => onCommit?.()}
-          onKeyUp={e => { if (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "Home" || e.key === "End") onCommit?.(); }}
+          onKeyUp={e => {
+            const k = e.key;
+            if (k === "ArrowLeft" || k === "ArrowRight" || k === "ArrowUp" || k === "ArrowDown" || k === "PageUp" || k === "PageDown" || k === "Home" || k === "End") onCommit?.();
+          }}
           className={`absolute inset-0 w-full opacity-0 cursor-pointer ${animating ? "animating" : ""}`}
         />
         <div

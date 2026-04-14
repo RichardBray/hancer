@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState } from "react";
 
 export interface HistoryState<T> {
   past: T[];
@@ -16,8 +16,26 @@ export interface HistoryApi<T> {
   canRedo: boolean;
 }
 
+// Order-independent structural equality for plain objects, arrays, and
+// primitives. Used to dedup no-op commits — JSON.stringify would be
+// key-order sensitive and break dedup if a snapshot were rebuilt with
+// keys in a different order.
 function snapshotEquals<T>(a: T, b: T): boolean {
-  return JSON.stringify(a) === JSON.stringify(b);
+  if (Object.is(a, b)) return true;
+  if (a === null || b === null || typeof a !== "object" || typeof b !== "object") return false;
+  if (Array.isArray(a) || Array.isArray(b)) {
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) if (!snapshotEquals(a[i], b[i])) return false;
+    return true;
+  }
+  const ak = Object.keys(a as object);
+  const bk = Object.keys(b as object);
+  if (ak.length !== bk.length) return false;
+  for (const k of ak) {
+    if (!Object.prototype.hasOwnProperty.call(b, k)) return false;
+    if (!snapshotEquals((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k])) return false;
+  }
+  return true;
 }
 
 // Pure reducers — exported for unit testing.
@@ -51,27 +69,24 @@ export function useHistory<T>(initial: T, cap = 25): HistoryApi<T> {
   const historyRef = useRef(history);
   historyRef.current = history;
 
-  const commit = useCallback((next: T) => {
+  function commit(next: T) {
     setHistory(h => commitState(h, next, cap));
-  }, [cap]);
-
-  const replace = useCallback((next: T) => {
+  }
+  function replace(next: T) {
     setHistory(h => ({ ...h, present: next }));
-  }, []);
-
-  const undo = useCallback((): T | null => {
+  }
+  function undo(): T | null {
     const next = undoState(historyRef.current);
     if (!next) return null;
     setHistory(next);
     return next.present;
-  }, []);
-
-  const redo = useCallback((): T | null => {
+  }
+  function redo(): T | null {
     const next = redoState(historyRef.current);
     if (!next) return null;
     setHistory(next);
     return next.present;
-  }, []);
+  }
 
   return {
     state: history.present,
