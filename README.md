@@ -16,6 +16,20 @@
 - **Chromatic Aberration** — Red/blue channel offset for lens fringing
 - **Gate Weave** — Sine-based frame drift simulating projector instability
 
+## Install
+
+```sh
+curl -fsSL https://github.com/Orva-Studio/hancer/releases/latest/download/install.sh | sh
+```
+
+This installs `hance` and its GPU sidecar to `~/.hance/bin`. The installer detects macOS (arm64/x64) or Linux (x64/arm64). You'll also need `ffmpeg` on your PATH (`brew install ffmpeg` / `apt install ffmpeg`).
+
+Pin a specific version:
+
+```sh
+curl -fsSL https://github.com/Orva-Studio/hancer/releases/latest/download/install.sh | sh -s -- --version v0.1.0
+```
+
 ## Requirements
 
 - **macOS** (primary supported platform — Linux/Windows untested)
@@ -23,7 +37,7 @@
 - [FFmpeg](https://ffmpeg.org) (runtime dependency for encoding/decoding)
 - [Rust](https://rustup.rs) (for building the GPU sidecar)
 
-## Install
+## Build from source
 
 ```bash
 # Clone and build
