@@ -78,6 +78,7 @@ jobs:
       - name: Stage release dir
         env:
           HANCE_PLATFORM: ${{ matrix.platform }}
+          CARGO_BUILD_TARGET: ${{ matrix.rust_target }}
         run: bun run scripts/stage-release.ts
 
       - name: Create tarball
