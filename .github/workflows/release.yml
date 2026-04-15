@@ -21,7 +21,9 @@ jobs:
           - platform: macos-arm64
             runner: macos-14
           - platform: macos-x64
-            runner: macos-13
+            runner: macos-14
+            bun_target: bun-darwin-x64
+            rust_target: x86_64-apple-darwin
           - platform: linux-x64
             runner: ubuntu-latest
           - platform: linux-arm64
@@ -57,11 +59,17 @@ jobs:
         if: startsWith(matrix.platform, 'linux')
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
+      - name: Add Rust cross target
+        if: matrix.rust_target
+        run: rustup target add ${{ matrix.rust_target }}
+
       - run: bun install --frozen-lockfile
 
       - name: Build
         env:
           HANCE_VERSION: ${{ steps.v.outputs.version }}
+          BUN_TARGET: ${{ matrix.bun_target }}
+          CARGO_BUILD_TARGET: ${{ matrix.rust_target }}
         run: bun run build
 
       - name: Stage release dir

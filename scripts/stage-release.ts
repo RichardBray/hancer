@@ -19,7 +19,11 @@ async function main() {
   await mkdir(stageDir, { recursive: true });
 
   const cli = path.join(root, "hance");
-  const gpu = path.join(root, "packages/wgpu/target/release/hance-gpu");
+  const rustTarget = process.env.CARGO_BUILD_TARGET;
+  const gpuDir = rustTarget
+    ? `packages/wgpu/target/${rustTarget}/release`
+    : "packages/wgpu/target/release";
+  const gpu = path.join(root, gpuDir, "hance-gpu");
   if (!existsSync(cli)) throw new Error(`missing ${cli} — run bun run build first`);
   if (!existsSync(gpu)) throw new Error(`missing ${gpu} — run bun run build:wgpu first`);
 
