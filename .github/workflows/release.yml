@@ -68,9 +68,12 @@ jobs:
       - name: Build
         env:
           HANCE_VERSION: ${{ steps.v.outputs.version }}
-          BUN_TARGET: ${{ matrix.bun_target }}
-          CARGO_BUILD_TARGET: ${{ matrix.rust_target }}
-        run: bun run build
+          BUN_TARGET_IN: ${{ matrix.bun_target }}
+          RUST_TARGET_IN: ${{ matrix.rust_target }}
+        run: |
+          [ -n "$BUN_TARGET_IN" ] && export BUN_TARGET="$BUN_TARGET_IN"
+          [ -n "$RUST_TARGET_IN" ] && export CARGO_BUILD_TARGET="$RUST_TARGET_IN"
+          bun run build
 
       - name: Stage release dir
         env:
