@@ -2,6 +2,31 @@
   "name": "hance",
   "version": "0.1.0",
   "type": "module",
+  "description": "CLI that applies cinematic film effects to video and images in one FFmpeg pass",
+  "bin": {
+    "hance": "packages/cli/src/cli.ts"
+  },
+  "files": [
+    "packages/core/src/**/*.ts",
+    "packages/core/package.json",
+    "packages/cli/src/**/*.ts",
+    "packages/cli/package.json",
+    "packages/ui/src/**/*.ts",
+    "packages/ui/dist/**",
+    "packages/ui/server.ts",
+    "packages/ui/package.json",
+    "packages/ui/public/**",
+    "presets/**",
+    "entitlements.plist",
+    "LICENSE",
+    "README.md"
+  ],
+  "keywords": ["video", "film", "ffmpeg", "color-grading", "cli"],
+  "license": "FSL-1.1-MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Orva-Studio/hance"
+  },
   "workspaces": ["packages/core", "packages/cli", "packages/ui"],
   "scripts": {
     "start": "bun run packages/cli/src/cli.ts",
