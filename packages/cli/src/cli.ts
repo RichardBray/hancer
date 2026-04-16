@@ -1,4 +1,3 @@
-#!/usr/bin/env bun
 import { existsSync } from "node:fs";
 import { probe, applyPreset, resolveExportPreset } from "@hance/core";
 import type { PresetData, FilmOptions, ExportPreset, OutputCodec } from "@hance/core";
