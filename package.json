@@ -1,8 +1,12 @@
 {
   "name": "hance",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
-  "workspaces": ["packages/core", "packages/cli", "packages/ui"],
+  "workspaces": [
+    "packages/core",
+    "packages/cli",
+    "packages/ui"
+  ],
   "scripts": {
     "start": "bun run packages/cli/src/cli.ts",
     "build": "bun run build:wgpu && bun run build:ui && bun build packages/cli/src/cli.ts --compile ${BUN_TARGET:+--target=$BUN_TARGET} --define HANCE_VERSION=\"'${HANCE_VERSION:-dev}'\" --outfile hance",
