@@ -4,17 +4,37 @@ import { parseArgs, getDefaultOutput, isSubcommand } from "../src/cli";
 describe("parseArgs", () => {
   it("parses input file as first positional arg", () => {
     const result = parseArgs(["input.mp4"]);
-    expect(result.input).toBe("input.mp4");
+    expect(result.inputs).toEqual(["input.mp4"]);
   });
 
   it("parses --output flag", () => {
     const result = parseArgs(["input.mp4", "--output", "out.mp4"]);
-    expect(result.output).toBe("out.mp4");
+    expect(result.outputs).toEqual(["out.mp4"]);
   });
 
   it("parses -o shorthand", () => {
     const result = parseArgs(["input.mp4", "-o", "out.mp4"]);
-    expect(result.output).toBe("out.mp4");
+    expect(result.outputs).toEqual(["out.mp4"]);
+  });
+
+  it("collects multiple positional args as inputs", () => {
+    const result = parseArgs(["a.mov", "b.mov", "c.mov"]);
+    expect(result.inputs).toEqual(["a.mov", "b.mov", "c.mov"]);
+  });
+
+  it("defaults outputs to <stem>_hanced<ext> next to each input when -o omitted", () => {
+    const result = parseArgs(["a.mov", "b.mov"]);
+    expect(result.outputs).toEqual(["a_hanced.mov", "b_hanced.mov"]);
+  });
+
+  it("treats -o as output directory when multiple inputs given", () => {
+    const result = parseArgs(["dir/a.mov", "dir/b.mov", "-o", "./out"]);
+    expect(result.outputs).toEqual(["out/a_hanced.mov", "out/b_hanced.mov"]);
+  });
+
+  it("keeps -o as file path with a single input", () => {
+    const result = parseArgs(["a.mov", "-o", "custom.mp4"]);
+    expect(result.outputs).toEqual(["custom.mp4"]);
   });
 
   it("parses color settings flags", () => {

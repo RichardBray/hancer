@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { probe, applyPreset, resolveExportPreset } from "@hance/core";
 import type { PresetData, FilmOptions, ExportPreset, OutputCodec } from "@hance/core";
 import { runGpuExport } from "./pipeline";
@@ -8,10 +8,11 @@ declare const HANCE_VERSION: string | undefined;
 const VERSION: string = (typeof HANCE_VERSION !== "undefined" ? HANCE_VERSION : (process.env.HANCE_VERSION ?? "dev"));
 
 const HELP_TEXT = `
-hance <input> [options]
+hance <input> [<input> ...] [options]
 
   Input/Output:
-  --output, -o <path>       Output path (default: <input>_hanced.<ext>)
+  --output, -o <path>       Output file (single input) or directory (multiple inputs).
+                            Default: <input>_hanced.<ext> next to each input.
   --codec      <string>     Output codec: h264/prores/h265 (default: h264)
   --encode-preset <string>  FFmpeg preset: fast/medium/slow (default: medium)
   --crf        <0-51>       Quality — lower is better (default: 18, ignored for prores)
@@ -127,11 +128,14 @@ function parseNum(value: string, flag: string, min: number, max: number): number
 interface ParsedArgs extends FilmOptions {
   help: boolean;
   params: PresetData;
+  inputs: string[];
+  outputs: string[];
+  outputArg: string;
 }
 
 export function parseArgs(argv: string[]): ParsedArgs {
-  let input = "";
-  let output = "";
+  const inputs: string[] = [];
+  let outputArg = "";
   let help = false;
   let presetName = "default";
   let exportPreset: ExportPreset | undefined;
@@ -176,7 +180,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
       if (val === undefined) throw new Error(`${arg} requires a value`);
 
       switch (arg) {
-        case "--output": case "-o": output = val; break;
+        case "--output": case "-o": outputArg = val; break;
         case "--preset": presetName = val; break;
         case "--codec":
           if (val !== "h264" && val !== "prores" && val !== "h265") {
@@ -227,21 +231,25 @@ export function parseArgs(argv: string[]): ParsedArgs {
       i += 2;
       continue;
     } else {
-      // Positional argument = input file
-      if (!input) {
-        input = arg;
-      }
+      inputs.push(arg);
       i++;
       continue;
     }
   }
 
-  if (!help && !input) {
-    throw new Error("No input file provided. Usage: hance <input> [options]");
+  if (!help && inputs.length === 0) {
+    throw new Error("No input file provided. Usage: hance <input> [<input> ...] [options]");
   }
 
-  if (!output && input) {
-    output = getDefaultOutput(input);
+  const outputs: string[] = [];
+  if (outputArg && inputs.length > 1) {
+    for (const inp of inputs) {
+      outputs.push(path.join(outputArg, getDefaultOutput(path.basename(inp))));
+    }
+  } else if (outputArg) {
+    outputs.push(outputArg);
+  } else {
+    for (const inp of inputs) outputs.push(getDefaultOutput(inp));
   }
 
   const effectOpts = applyPreset(presetName, overrides);
@@ -269,8 +277,9 @@ export function parseArgs(argv: string[]): ParsedArgs {
   }
 
   return {
-    input,
-    output,
+    inputs,
+    outputs,
+    outputArg,
     encodePreset: resolvedEncodePreset,
     codec: resolvedCodec,
     crf: resolvedCrf,
@@ -330,57 +339,84 @@ async function main() {
 
   await Promise.all([checkDependency("ffmpeg"), checkDependency("ffprobe")]);
 
-  if (!existsSync(parsed.input)) {
-    console.error(`Input file not found: ${parsed.input}`);
-    process.exit(1);
+  for (const inp of parsed.inputs) {
+    if (!existsSync(inp)) {
+      console.error(`Input file not found: ${inp}`);
+      process.exit(1);
+    }
   }
 
-  const probeResult = await probe(parsed.input);
+  const isBatch = parsed.inputs.length > 1;
+  if (isBatch && parsed.outputArg) {
+    mkdirSync(parsed.outputArg, { recursive: true });
+  }
 
-  console.log(`Input:  ${parsed.input}${probeResult.isImage ? " (image)" : ""}`);
-  console.log(`Output: ${parsed.output}`);
+  const total = parsed.inputs.length;
+  const failures: { input: string; error: string }[] = [];
 
-  if (probeResult.isImage) {
-    process.stdout.write("Processing...\n");
-    const { createHeadlessRenderer } = await import("./gpu/wgpu-renderer");
-    const renderer = await createHeadlessRenderer();
+  for (let idx = 0; idx < total; idx++) {
+    const input = parsed.inputs[idx];
+    const output = parsed.outputs[idx];
+    const prefix = isBatch ? `[${idx + 1}/${total}] ` : "";
+
     try {
-      await renderer.init(probeResult.width!, probeResult.height!, parsed.params);
-      const decodeProc = Bun.spawn([
-        "ffmpeg", "-i", parsed.input,
-        "-f", "rawvideo", "-pix_fmt", "rgba",
-        "-v", "quiet",
-        "pipe:1",
-      ], { stdout: "pipe", stderr: "pipe" });
-      const rawBytes = new Uint8Array(await new Response(decodeProc.stdout).arrayBuffer());
-      await decodeProc.exited;
-      const rendered = await renderer.renderFrame(rawBytes, probeResult.width!, probeResult.height!, parsed.params);
-      // Encode raw RGBA to output format via FFmpeg
-      const encodeProc = Bun.spawn([
-        "ffmpeg", "-y",
-        "-f", "rawvideo", "-pix_fmt", "rgba",
-        "-s", `${probeResult.width}x${probeResult.height}`,
-        "-i", "pipe:0",
-        "-v", "quiet",
-        parsed.output,
-      ], { stdin: "pipe", stdout: "pipe", stderr: "pipe" });
-      encodeProc.stdin.write(rendered);
-      encodeProc.stdin.end();
-      const encodeExit = await encodeProc.exited;
-      if (encodeExit !== 0) {
-        const stderr = await new Response(encodeProc.stderr).text();
-        throw new Error(`FFmpeg encode failed: ${stderr.trim()}`);
+      const probeResult = await probe(input);
+
+      console.log(`${prefix}Input:  ${input}${probeResult.isImage ? " (image)" : ""}`);
+      console.log(`${" ".repeat(prefix.length)}Output: ${output}`);
+
+      if (probeResult.isImage) {
+        process.stdout.write(`${prefix}Processing...\n`);
+        const { createHeadlessRenderer } = await import("./gpu/wgpu-renderer");
+        const renderer = await createHeadlessRenderer();
+        try {
+          await renderer.init(probeResult.width!, probeResult.height!, parsed.params);
+          const decodeProc = Bun.spawn([
+            "ffmpeg", "-i", input,
+            "-f", "rawvideo", "-pix_fmt", "rgba",
+            "-v", "quiet",
+            "pipe:1",
+          ], { stdout: "pipe", stderr: "pipe" });
+          const rawBytes = new Uint8Array(await new Response(decodeProc.stdout).arrayBuffer());
+          await decodeProc.exited;
+          const rendered = await renderer.renderFrame(rawBytes, probeResult.width!, probeResult.height!, parsed.params);
+          const encodeProc = Bun.spawn([
+            "ffmpeg", "-y",
+            "-f", "rawvideo", "-pix_fmt", "rgba",
+            "-s", `${probeResult.width}x${probeResult.height}`,
+            "-i", "pipe:0",
+            "-v", "quiet",
+            output,
+          ], { stdin: "pipe", stdout: "pipe", stderr: "pipe" });
+          encodeProc.stdin.write(rendered);
+          encodeProc.stdin.end();
+          const encodeExit = await encodeProc.exited;
+          if (encodeExit !== 0) {
+            const stderr = await new Response(encodeProc.stderr).text();
+            throw new Error(`FFmpeg encode failed: ${stderr.trim()}`);
+          }
+        } finally {
+          await renderer.close();
+        }
+        console.log(`${prefix}Done.`);
+      } else {
+        await runGpuExport(input, output, parsed.params, probeResult, (ratio) => {
+          const pct = Math.round(ratio * 100);
+          process.stdout.write(`\r${prefix}Processing... ${pct}%`);
+        }, { codec: parsed.codec, crf: parsed.crf, encodePreset: parsed.encodePreset, pixelFormat: parsed.pixelFormat });
+        process.stdout.write("\n");
       }
-    } finally {
-      await renderer.close();
+    } catch (err) {
+      const msg = (err as Error).message;
+      console.error(`${prefix}Failed: ${msg}`);
+      failures.push({ input, error: msg });
+      if (!isBatch) process.exit(1);
     }
-    console.log("Done.");
-  } else {
-    await runGpuExport(parsed.input, parsed.output, parsed.params, probeResult, (ratio) => {
-      const pct = Math.round(ratio * 100);
-      process.stdout.write(`\rProcessing... ${pct}%`);
-    }, { codec: parsed.codec, crf: parsed.crf, encodePreset: parsed.encodePreset, pixelFormat: parsed.pixelFormat });
-    process.stdout.write("\n");
+  }
+
+  if (failures.length > 0) {
+    console.error(`\n${failures.length}/${total} input(s) failed.`);
+    process.exit(1);
   }
 }
 

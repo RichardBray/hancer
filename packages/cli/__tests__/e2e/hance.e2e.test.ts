@@ -158,6 +158,27 @@ describe("e2e: hance", () => {
     expect(existsSync(path.join(FIXTURES_DIR, "test_hanced.png"))).toBe(true);
   });
 
+  it("batch: processes multiple inputs with -o as output directory", async () => {
+    const outDir = path.join(FIXTURES_DIR, "batch_out");
+    cleanup(["batch_out/test_hanced.mp4", "batch_out/test_hanced.png"]);
+    if (existsSync(outDir)) {
+      try { require("fs").rmdirSync(outDir); } catch {}
+    }
+    const { exitCode, stderr, stdout } = await runHance([
+      path.join(FIXTURES_DIR, "test.mp4"),
+      path.join(FIXTURES_DIR, "test.png"),
+      "-o", outDir,
+    ]);
+    if (exitCode !== 0) console.error("stderr:", stderr);
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain("[1/2]");
+    expect(stdout).toContain("[2/2]");
+    expect(existsSync(path.join(outDir, "test_hanced.mp4"))).toBe(true);
+    expect(existsSync(path.join(outDir, "test_hanced.png"))).toBe(true);
+    cleanup(["batch_out/test_hanced.mp4", "batch_out/test_hanced.png"]);
+    try { require("fs").rmdirSync(outDir); } catch {}
+  });
+
   it("processes with global blend", async () => {
     cleanup(["test_hanced.png"]);
     const { exitCode, stderr } = await runHance([
