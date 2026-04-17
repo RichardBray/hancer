@@ -274,7 +274,7 @@ export function createServer(port: number) {
         if (!file) return new Response("file required", { status: 400 });
 
         const proxyDir = join(tmpdir(), "hance-proxy");
-        if (!existsSync(proxyDir)) mkdirSync(proxyDir, { recursive: true });
+        mkdirSync(proxyDir, { recursive: true });
         const id = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
         const inputPath = join(proxyDir, `input_${id}${safeExt(file.name)}`);
         await Bun.write(inputPath, file);
