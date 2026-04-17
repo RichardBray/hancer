@@ -339,16 +339,27 @@ async function main() {
 
   await Promise.all([checkDependency("ffmpeg"), checkDependency("ffprobe")]);
 
-  for (const inp of parsed.inputs) {
-    if (!existsSync(inp)) {
-      console.error(`Input file not found: ${inp}`);
+  const isBatch = parsed.inputs.length > 1;
+
+  if (!isBatch) {
+    if (!existsSync(parsed.inputs[0])) {
+      console.error(`Input file not found: ${parsed.inputs[0]}`);
       process.exit(1);
     }
   }
 
-  const isBatch = parsed.inputs.length > 1;
   if (isBatch && parsed.outputArg) {
     mkdirSync(parsed.outputArg, { recursive: true });
+  }
+
+  if (isBatch) {
+    const seen = new Set<string>();
+    for (const out of parsed.outputs) {
+      if (seen.has(out)) {
+        console.warn(`Warning: multiple inputs resolve to the same output path and will overwrite each other: ${out}`);
+      }
+      seen.add(out);
+    }
   }
 
   const total = parsed.inputs.length;
@@ -360,6 +371,9 @@ async function main() {
     const prefix = isBatch ? `[${idx + 1}/${total}] ` : "";
 
     try {
+      if (isBatch && !existsSync(input)) {
+        throw new Error(`Input file not found: ${input}`);
+      }
       const probeResult = await probe(input);
 
       console.log(`${prefix}Input:  ${input}${probeResult.isImage ? " (image)" : ""}`);

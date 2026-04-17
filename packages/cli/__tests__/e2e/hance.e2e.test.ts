@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from "bun:test";
-import { existsSync, unlinkSync } from "fs";
+import { existsSync, unlinkSync, rmSync } from "node:fs";
 import path from "path";
 
 const FIXTURES_DIR = path.join(import.meta.dir, "fixtures");
@@ -160,10 +160,7 @@ describe("e2e: hance", () => {
 
   it("batch: processes multiple inputs with -o as output directory", async () => {
     const outDir = path.join(FIXTURES_DIR, "batch_out");
-    cleanup(["batch_out/test_hanced.mp4", "batch_out/test_hanced.png"]);
-    if (existsSync(outDir)) {
-      try { require("fs").rmdirSync(outDir); } catch {}
-    }
+    if (existsSync(outDir)) rmSync(outDir, { recursive: true, force: true });
     const { exitCode, stderr, stdout } = await runHance([
       path.join(FIXTURES_DIR, "test.mp4"),
       path.join(FIXTURES_DIR, "test.png"),
@@ -175,8 +172,23 @@ describe("e2e: hance", () => {
     expect(stdout).toContain("[2/2]");
     expect(existsSync(path.join(outDir, "test_hanced.mp4"))).toBe(true);
     expect(existsSync(path.join(outDir, "test_hanced.png"))).toBe(true);
-    cleanup(["batch_out/test_hanced.mp4", "batch_out/test_hanced.png"]);
-    try { require("fs").rmdirSync(outDir); } catch {}
+    rmSync(outDir, { recursive: true, force: true });
+  });
+
+  it("batch: continues on per-file failure and exits non-zero", async () => {
+    const outDir = path.join(FIXTURES_DIR, "batch_err_out");
+    if (existsSync(outDir)) rmSync(outDir, { recursive: true, force: true });
+    const { exitCode, stdout, stderr } = await runHance([
+      path.join(FIXTURES_DIR, "test.png"),
+      path.join(FIXTURES_DIR, "does_not_exist.png"),
+      "-o", outDir,
+    ]);
+    expect(exitCode).not.toBe(0);
+    expect(stdout).toContain("[1/2]");
+    expect(stderr).toContain("Input file not found");
+    expect(stderr).toContain("1/2 input(s) failed");
+    expect(existsSync(path.join(outDir, "test_hanced.png"))).toBe(true);
+    rmSync(outDir, { recursive: true, force: true });
   });
 
   it("processes with global blend", async () => {
