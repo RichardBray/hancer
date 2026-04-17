@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useUpload } from "./hooks/useUpload";
+import { useInitialFile } from "./hooks/useInitialFile";
 import { useLooks } from "./hooks/useLooks";
 import { useResizable } from "./hooks/useResizable";
 import { useHistory } from "./hooks/useHistory";
@@ -30,20 +31,7 @@ export function App() {
     setProxyErrorMsg(null);
   }, [objectUrl]);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch("/api/initial-file");
-        if (!res.ok || cancelled) return;
-        const name = decodeURIComponent(res.headers.get("X-Filename") || "file");
-        const blob = await res.blob();
-        if (cancelled) return;
-        upload(new File([blob], name, { type: blob.type }));
-      } catch {}
-    })();
-    return () => { cancelled = true; };
-  }, []);
+  useInitialFile(upload);
 
   const startTranscode = useCallback(async () => {
     if (!file) return;
