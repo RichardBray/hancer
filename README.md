@@ -105,9 +105,10 @@ Run `hance --help` for the full list of effect flags (color, halation, bloom, gr
 ### Interactive UI
 
 ```bash
-hance ui                 # opens http://localhost:4800 in your browser
-hance ui --port 5000     # custom port
-hance ui --no-open       # don't auto-open browser
+hance ui                      # opens http://localhost:4800 in your browser
+hance ui path/to/video.mp4    # open the UI with a file preloaded
+hance ui --port 5000          # custom port
+hance ui --no-open            # don't auto-open browser
 ```
 
 ---
