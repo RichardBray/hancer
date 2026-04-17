@@ -30,6 +30,21 @@ export function App() {
     setProxyErrorMsg(null);
   }, [objectUrl]);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/initial-file");
+        if (!res.ok || cancelled) return;
+        const name = decodeURIComponent(res.headers.get("X-Filename") || "file");
+        const blob = await res.blob();
+        if (cancelled) return;
+        upload(new File([blob], name, { type: blob.type }));
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   const startTranscode = useCallback(async () => {
     if (!file) return;
     setProxyState("uploading");

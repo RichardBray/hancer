@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { parseArgs, getDefaultOutput, isSubcommand } from "../src/cli";
+import { parseArgs, getDefaultOutput, isSubcommand, parseUiArgs } from "../src/cli";
 
 describe("parseArgs", () => {
   it("parses input file as first positional arg", () => {
@@ -162,5 +162,42 @@ describe("getDefaultOutput", () => {
 
   it("handles paths with directories", () => {
     expect(getDefaultOutput("/path/to/video.mp4")).toBe("/path/to/video_hanced.mp4");
+  });
+});
+
+describe("parseUiArgs", () => {
+  it("defaults when no args", () => {
+    const r = parseUiArgs([]);
+    expect(r.port).toBe(4800);
+    expect(r.open).toBe(true);
+    expect(r.initialFile).toBeUndefined();
+  });
+
+  it("parses positional file", () => {
+    const r = parseUiArgs(["video.mp4"]);
+    expect(r.initialFile).toBe("video.mp4");
+  });
+
+  it("parses --port", () => {
+    const r = parseUiArgs(["--port", "5000"]);
+    expect(r.port).toBe(5000);
+  });
+
+  it("parses --no-open", () => {
+    const r = parseUiArgs(["--no-open"]);
+    expect(r.open).toBe(false);
+  });
+
+  it("does not treat --port value as initialFile", () => {
+    const r = parseUiArgs(["--port", "5000", "video.mp4"]);
+    expect(r.initialFile).toBe("video.mp4");
+    expect(r.port).toBe(5000);
+  });
+
+  it("combines flags and positional in any order", () => {
+    const r = parseUiArgs(["video.mp4", "--no-open", "--port", "5000"]);
+    expect(r.initialFile).toBe("video.mp4");
+    expect(r.open).toBe(false);
+    expect(r.port).toBe(5000);
   });
 });

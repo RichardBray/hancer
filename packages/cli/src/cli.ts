@@ -111,6 +111,26 @@ export function isSubcommand(args: string[]): boolean {
   return args[0] === "ui";
 }
 
+export interface UiArgs {
+  port: number;
+  open: boolean;
+  initialFile?: string;
+}
+
+export function parseUiArgs(subArgs: string[]): UiArgs {
+  const portIdx = subArgs.indexOf("--port");
+  const port = portIdx !== -1 ? parseInt(subArgs[portIdx + 1], 10) : 4800;
+  const open = !subArgs.includes("--no-open");
+  let initialFile: string | undefined;
+  for (let j = 0; j < subArgs.length; j++) {
+    const a = subArgs[j];
+    if (a === "--port") { j++; continue; }
+    if (a === "--no-open") continue;
+    if (!a.startsWith("-")) { initialFile = a; break; }
+  }
+  return { port, open, initialFile };
+}
+
 export function getDefaultOutput(inputPath: string): string {
   const ext = path.extname(inputPath);
   const base = inputPath.slice(0, -ext.length);
@@ -317,10 +337,16 @@ async function main() {
 
   if (isSubcommand(args)) {
     const { startUI } = await import("@hance/ui/server");
-    const portIdx = args.indexOf("--port");
-    const port = portIdx !== -1 ? parseInt(args[portIdx + 1], 10) : 4800;
-    const open = !args.includes("--no-open");
-    await startUI(port, open);
+    const { port, open, initialFile: rawFile } = parseUiArgs(args.slice(1));
+    let initialFile: string | undefined;
+    if (rawFile) {
+      initialFile = path.resolve(rawFile);
+      if (!existsSync(initialFile)) {
+        console.error(`File not found: ${initialFile}`);
+        process.exit(1);
+      }
+    }
+    await startUI(port, open, initialFile);
     return;
   }
 
