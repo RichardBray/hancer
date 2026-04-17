@@ -1,145 +1,129 @@
 # Hance
 
-**Cinematic film look in one command.** Drop hance into any video pipeline — batch processing, CI/CD, content automation — and get GPU-accelerated colour grading, halation, chromatic aberration, and gate weave without opening an editor. One binary, one pass, no plugins, no subscriptions.
+> ⚠️ **Alpha software.** Hance is early-stage and has mainly been tested on macOS by a single developer. Expect rough edges on Linux/Windows, and pin versions if you use it in anything important.
+
+**A cinematic film-look engine for video and stills.** Dial in a look in the browser UI, then apply it headlessly across a whole folder from the CLI — GPU-accelerated colour, halation, bloom, grain, vignette, split-tone, aberration, and camera shake in a single pass. One binary, no plugins, no subscriptions.
 
 ### Why hance?
 
-- **One-pass processing** — all effects compose into a single filter graph. No intermediate files, no re-encoding chains.
+- **One-pass processing** — all effects compose into a single GPU render graph. No intermediate files, no re-encoding chains.
 - **GPU-accelerated** — native wgpu sidecar renders effects on the GPU. Fast enough for batch workflows.
-- **Pipeline-first** — a single binary with CLI flags. Script it, cron it, plug it into your ingest pipeline.
+- **Pipeline-first** — a single binary with CLI flags, presets, and batch input. Script it, cron it, plug it into your ingest pipeline.
+- **Optional browser UI** — `hance ui` launches a local preview app when you want to dial in a look interactively.
 - **No vendor lock-in** — runs on your machine, processes your files locally. Your footage never leaves your disk.
 
 ### Effects
 
-- **Grade** — Lift blacks, crush whites, shadow/highlight tinting, fade
-- **Halation** — Highlight glow with warm tint (simulates light scattering in film)
-- **Chromatic Aberration** — Red/blue channel offset for lens fringing
-- **Gate Weave** — Sine-based frame drift simulating projector instability
+- **Color** — exposure, contrast, highlight compression, fade, white balance, tint, subtractive saturation, richness, bleach bypass
+- **Halation** — highlight glow with hue/saturation controls (simulates light scattering in film)
+- **Bloom** — soft highlight bloom independent of halation
+- **Grain** — film grain with size, softness, saturation, and defocus
+- **Vignette** — soft corner falloff
+- **Split Tone** — shadow/highlight tinting with a neutral-protect mode
+- **Chromatic Aberration** — red/blue channel offset for lens fringing
+- **Camera Shake** — procedural handheld motion
 
-## Install
+---
+
+## Install the CLI (recommended)
+
+No Bun, Rust, or Node required — just FFmpeg.
 
 ```sh
 curl -fsSL https://github.com/Orva-Studio/hancer/releases/latest/download/install.sh | sh
 ```
 
-This installs `hance` and its GPU sidecar to `~/.hance/bin`. The installer detects macOS (arm64/x64) or Linux (x64/arm64). You'll also need `ffmpeg` on your PATH (`brew install ffmpeg` / `apt install ffmpeg`).
+This installs `hance` and its GPU sidecar to `~/.hance/bin`. The installer detects macOS (arm64/x64) or Linux (x64/arm64).
+
+You'll also need `ffmpeg` on your PATH:
+
+```sh
+brew install ffmpeg   # macOS
+apt install ffmpeg    # Debian/Ubuntu
+```
 
 Pin a specific version:
 
 ```sh
-curl -fsSL https://github.com/Orva-Studio/hancer/releases/latest/download/install.sh | sh -s -- --version v0.1.0
+curl -fsSL https://github.com/Orva-Studio/hancer/releases/latest/download/install.sh | sh -s -- --version v0.1.2
 ```
 
-## Requirements
-
-- **macOS** (primary supported platform — Linux/Windows untested)
-- [Bun](https://bun.sh) (for building and running)
-- [FFmpeg](https://ffmpeg.org) (runtime dependency for encoding/decoding)
-- [Rust](https://rustup.rs) (for building the GPU sidecar)
-
-## Build from source
-
-```bash
-# Clone and build
-git clone https://github.com/RichardBray/hance.git
-cd hance
-bun install
-bun run build    # builds Rust sidecar + UI + CLI binary
-
-# Optional: add to PATH
-ln -s $(pwd)/hance /usr/local/bin/hance
-```
-
-### Building components individually
-
-```bash
-bun run build:gpu   # Build Rust wgpu sidecar (sidecar/target/release/hance-gpu)
-bun run build:ui    # Build browser UI bundle
-```
+---
 
 ## Usage
 
 ```bash
-hance <input> [options]
+hance <input> [<input> ...] [options]
 ```
 
 ### Examples
 
 ```bash
-# Process video with defaults
+# Process a video with defaults
 hance video.mp4
 
-# Process image
+# Process an image
 hance photo.png
 
 # Custom output path
 hance video.mp4 -o output.mp4
 
-# Adjust effects
-hance video.mp4 --lift 0.1 --fade 0.3 --aberration 0.5
+# Batch process — outputs go next to each input (or into -o if it's a directory)
+hance clip1.mp4 clip2.mp4 clip3.mov -o ./graded/
 
-# Fast encode, lower quality
-hance video.mp4 --preset fast --crf 28
+# Load a built-in preset
+hance video.mp4 --preset heavy
+
+# Override preset values
+hance video.mp4 --preset subtle --grain-amount 0.2 --aberration 0.5
+
+# ProRes output for editing workflows
+hance video.mov --codec prores -o output.mov
+
+# Launch the local browser UI for interactive preview
+hance ui
 ```
 
-### Options
+### Presets
 
-| Flag | Range | Default | Description |
-|------|-------|---------|-------------|
-| `--output, -o` | | `<input>_hanced.<ext>` | Output path |
-| `--codec` | h264/prores/h265 | h264 | Output video codec |
-| `--encode-preset` | fast/medium/slow | medium | FFmpeg encoding speed preset |
-| `--crf` | 0–51 | 18 | Quality (lower = better, ignored for prores) |
-| `--lift` | 0–0.15 | 0.05 | Black lift amount |
-| `--crush` | 0–0.15 | 0.04 | White crush amount |
-| `--fade` | 0–1 | 0.15 | Contrast fade |
-| `--shadow-tint` | warm/cool/neutral | warm | Shadow colour tint |
-| `--highlight-tint` | warm/cool/neutral | cool | Highlight colour tint |
-| `--halation-intensity` | 0–1 | 0.6 | Glow intensity |
-| `--halation-radius` | 1–999 | 51 | Glow blur radius (px) |
-| `--halation-threshold` | 0–255 | 180 | Highlight threshold |
-| `--halation-warmth` | 0–1 | 0.7 | Glow warmth |
-| `--aberration` | 0–1 | 0.3 | Chromatic aberration strength |
-| `--weave` | 0–1 | 0.3 | Gate weave strength |
+Hance ships with a handful of built-in presets (see `presets/*.hlook`). Pass `--preset <name>` to start from one; any additional flags override its values.
 
-## Architecture
+### Common options
 
-Effects are rendered on the GPU via a native Rust [wgpu](https://wgpu.rs) sidecar binary. WGSL shaders in `src/shaders/` are shared between the browser preview (via Bun text imports) and the Rust sidecar (via `include_str!`). The sidecar communicates with the Bun CLI over stdin/stdout using a length-prefixed JSON init message followed by raw RGBA frames.
+| Flag | Range / values | Default | Description |
+|------|----------------|---------|-------------|
+| `--output, -o` | path | `<input>_hanced.<ext>` | Output file (single input) or directory (multi-input) |
+| `--preset` | name | `default` | Load a preset before applying flags |
+| `--codec` | h264 / h265 / prores | h264 | Output video codec |
+| `--encode-preset` | fast / medium / slow | medium | FFmpeg encoding speed |
+| `--crf` | 0–51 | 18 | Quality — lower is better (ignored for prores) |
+| `--export` | low / medium / high / max | — | Export quality preset |
+| `--blend` | 0–1 | 1 | Blend final result with original |
 
-## Development
+Run `hance --help` for the full list of effect flags (color, halation, bloom, grain, vignette, split-tone, camera-shake, aberration, etc.). Every effect group also has a `--no-<effect>` switch to disable it.
+
+### Interactive UI
 
 ```bash
-# Run in dev mode (requires sidecar built first)
-bun run build:gpu
-bun run src/cli.ts <input> [options]
-
-# Run Bun tests
-bun test
-
-# Run e2e tests only
-bun test src/__tests__/e2e/
-
-# Run Rust tests
-cd sidecar && cargo test
-
-# Build everything
-bun run build
+hance ui                 # opens http://localhost:4800 in your browser
+hance ui --port 5000     # custom port
+hance ui --no-open       # don't auto-open browser
 ```
 
-## Output Quality
+---
+
+## Output quality
 
 By default, hance encodes output as H.264 with CRF 18. If your source is a high-quality format like ProRes (common with `.mov` files from cameras or editing software), the default H.264 output will be lower quality than the original due to lossy compression and 4:2:0 chroma subsampling.
 
-To preserve quality closer to the original:
-
 ```bash
-# Use ProRes output (near-lossless, 4:2:2 10-bit, larger files)
+# ProRes output (near-lossless, 4:2:2 10-bit, larger files)
 hance video.mov -o output.mov --codec prores
 
-# Use a lower CRF for higher-quality H.264 (0 = lossless)
+# Lower CRF for higher-quality H.264 (0 = lossless)
 hance video.mov -o output.mp4 --crf 8
 
-# Use H.265 for better quality at similar file sizes
+# H.265 for better quality at similar file sizes
 hance video.mov -o output.mp4 --codec h265 --crf 12
 ```
 
@@ -148,6 +132,71 @@ hance video.mov -o output.mp4 --codec h265 --crf 12
 | `h264` (default) | Good (CRF-dependent) | Smallest | Universal |
 | `h265` | Better at same CRF | ~30% smaller than h264 | Most modern players |
 | `prores` | Near-lossless (4:2:2 10-bit) | Largest | macOS, editing software |
+
+---
+
+## Build from source
+
+Only needed if you want to hack on hance itself. The released CLI binary does **not** require any of this.
+
+### Requirements
+
+- [Bun](https://bun.sh) — runtime and build tool
+- [Rust](https://rustup.rs) — for the wgpu GPU sidecar
+- [FFmpeg](https://ffmpeg.org) — runtime dependency
+
+### Build
+
+```bash
+git clone https://github.com/RichardBray/hance.git
+cd hance
+bun install
+bun run build    # builds wgpu sidecar + UI bundle + CLI binary → ./hance
+
+# Optional: add to PATH
+ln -s "$(pwd)/hance" /usr/local/bin/hance
+```
+
+### Individual build steps
+
+```bash
+bun run build:wgpu   # Rust wgpu sidecar (packages/wgpu/target/release/hance-gpu)
+bun run build:ui     # Browser UI bundle
+```
+
+### Dev loop
+
+```bash
+# Run the CLI directly from source (needs sidecar built first)
+bun run build:wgpu
+bun run packages/cli/src/cli.ts <input> [options]
+
+# Unit tests
+bun test
+
+# E2E tests (actual FFmpeg + GPU execution)
+bun test packages/cli/__tests__/e2e/
+
+# Rust tests
+cd packages/wgpu && cargo test
+```
+
+---
+
+## Architecture
+
+Hance is a Bun workspaces monorepo:
+
+- `packages/core` — pure TypeScript effect/preset/arg logic
+- `packages/cli` — the compiled `hance` binary entry point
+- `packages/ui` — the browser-based interactive preview
+- `packages/wgpu` — the Rust wgpu sidecar binary
+
+Effects are rendered on the GPU via the native Rust [wgpu](https://wgpu.rs) sidecar. WGSL shaders are shared between the browser preview and the Rust sidecar. The sidecar communicates with the Bun CLI over stdin/stdout using a length-prefixed JSON init message followed by raw RGBA frames.
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for more detail.
+
+---
 
 ## License
 
