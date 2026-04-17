@@ -51,9 +51,13 @@ export function createServer(port: number) {
         if (!initialFilePath || !existsSync(initialFilePath)) {
           return new Response("no initial file", { status: 404 });
         }
+        const file = Bun.file(initialFilePath);
         const name = initialFilePath.split("/").pop() || "file";
-        return new Response(Bun.file(initialFilePath), {
-          headers: { "X-Filename": encodeURIComponent(name) },
+        return new Response(file, {
+          headers: {
+            "X-Filename": encodeURIComponent(name),
+            "Content-Type": file.type || "application/octet-stream",
+          },
         });
       }
 

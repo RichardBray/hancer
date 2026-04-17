@@ -39,7 +39,7 @@ describe("API server", () => {
   });
 
   test("GET /api/initial-file serves file bytes with X-Filename", async () => {
-    const filePath = join(tmpdir(), `hance-initial-test-${Date.now()}.bin`);
+    const filePath = join(tmpdir(), `hance-initial-test-${Date.now()}.mp4`);
     const contents = new Uint8Array([1, 2, 3, 4, 5]);
     writeFileSync(filePath, contents);
     setInitialFile(filePath);
@@ -48,6 +48,7 @@ describe("API server", () => {
       expect(res.status).toBe(200);
       const name = decodeURIComponent(res.headers.get("X-Filename") || "");
       expect(name).toBe(filePath.split("/").pop());
+      expect(res.headers.get("Content-Type")).toContain("video/mp4");
       const bytes = new Uint8Array(await res.arrayBuffer());
       expect(Array.from(bytes)).toEqual([1, 2, 3, 4, 5]);
     } finally {
