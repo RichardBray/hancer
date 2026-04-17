@@ -9,6 +9,7 @@ hance
 packages/cli/__tests__/e2e/fixtures/test.mp4
 packages/cli/__tests__/e2e/fixtures/test.png
 packages/cli/__tests__/e2e/fixtures/test.mov
+packages/cli/__tests__/e2e/fixtures/test_with_audio.mp4
 *_hanced.*
 
 # UI build output

@@ -15,14 +15,22 @@ async function probeStartTime(file: string, streamSelector: string): Promise<num
   );
   const out = (await new Response(proc.stdout).text()).trim();
   await proc.exited;
-  return parseFloat(out) || 0;
+  const n = parseFloat(out);
+  if (!Number.isFinite(n)) {
+    throw new Error(`ffprobe returned non-numeric start_time for ${streamSelector}: ${JSON.stringify(out)}`);
+  }
+  return n;
 }
 
 describe("e2e: audio/video sync", () => {
   beforeAll(async () => {
     if (!existsSync(INPUT)) {
-      const proc = Bun.spawn(["bash", path.join(FIXTURES_DIR, "generate-fixtures.sh")]);
-      await proc.exited;
+      const proc = Bun.spawn(["bash", path.join(FIXTURES_DIR, "generate-fixtures.sh")], {
+        stdout: "pipe", stderr: "pipe",
+      });
+      const stderr = await new Response(proc.stderr).text();
+      const exitCode = await proc.exited;
+      if (exitCode !== 0) throw new Error(`generate-fixtures.sh failed (exit ${exitCode}): ${stderr}`);
     }
   });
 
