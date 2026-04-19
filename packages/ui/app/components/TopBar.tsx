@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Renderer } from "../gpu/renderer";
 import { consumeSSE } from "../lib/sse";
+import { SaveBar } from "./SaveBar";
 
 interface Props {
   filename: string | null;
@@ -9,11 +10,18 @@ interface Props {
   canvas: HTMLCanvasElement | null;
   renderer: Renderer | null;
   isVideo: boolean;
+  hasChanges: boolean;
+  onSave: () => void;
+  onSaveAsNew: () => void;
+  onExportClick: () => void;
 }
 
 type ExportState = "idle" | "uploading" | "rendering" | "done" | "error";
 
-export function TopBar({ filename, file, params, canvas, renderer, isVideo }: Props) {
+export function TopBar({
+  filename, file, params, canvas, renderer, isVideo,
+  hasChanges, onSave, onSaveAsNew, onExportClick,
+}: Props) {
   const [state, setState] = useState<ExportState>("idle");
   const [progress, setProgress] = useState(0);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
@@ -38,50 +46,24 @@ export function TopBar({ filename, file, params, canvas, renderer, isVideo }: Pr
     URL.revokeObjectURL(url);
   }
 
-  async function startExport() {
-    if (!file) return;
-    setState("uploading");
-    setProgress(0);
-    setDownloadUrl(null);
-    setError(null);
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("params", JSON.stringify(params));
-
-    try {
-      const res = await fetch("/api/export", { method: "POST", body: formData });
-      setState("rendering");
-      await consumeSSE(res, {
-        onProgress: setProgress,
-        onDone: (data) => {
-          setState("done");
-          setDownloadUrl(data.downloadUrl as string);
-        },
-        onError: (msg) => {
-          setState("error");
-          setError(msg);
-        },
-      });
-    } catch (err) {
-      setState("error");
-      setError((err as Error).message);
-    }
-  }
-
   return (
     <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-800 bg-zinc-900">
-      <span className="text-sm font-semibold text-zinc-200">hance</span>
-
-      <span className="text-xs text-zinc-500 truncate max-w-xs">
+      <span className="text-xs text-zinc-300 truncate max-w-xs">
         {filename || ""}
       </span>
 
+      <span />
+
       <div className="flex items-center gap-2">
+        {file && (
+          <SaveBar hasChanges={hasChanges} onSave={onSave} onSaveAsNew={onSaveAsNew} />
+        )}
+
         {state === "idle" && file && (
           <button
-            onClick={isVideo ? startExport : downloadImage}
-            className="px-4 py-1 bg-accent text-white text-xs font-medium rounded-md hover:bg-accent-hover transition-colors"
+            onClick={isVideo ? onExportClick : downloadImage}
+            className="px-4 py-1 bg-accent text-white text-xs font-medium hover:bg-accent-hover transition-colors"
+            style={{ borderRadius: "var(--radius-sm)" }}
           >
             {isVideo ? "Export" : "Download"}
           </button>
@@ -92,9 +74,9 @@ export function TopBar({ filename, file, params, canvas, renderer, isVideo }: Pr
             <span className="text-xs text-zinc-400">
               {state === "uploading" ? "Uploading..." : `${Math.round(progress * 100)}%`}
             </span>
-            <div className="w-24 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+            <div className="w-24 h-1.5 bg-zinc-700 overflow-hidden" style={{ borderRadius: "var(--radius-sm)" }}>
               <div
-                className="h-full bg-accent rounded-full transition-[width] duration-200"
+                className="h-full bg-accent transition-[width] duration-200"
                 style={{ width: `${progress * 100}%` }}
               />
             </div>
@@ -106,7 +88,8 @@ export function TopBar({ filename, file, params, canvas, renderer, isVideo }: Pr
             href={downloadUrl}
             download
             onClick={() => setState("idle")}
-            className="px-4 py-1 bg-success text-white text-xs font-medium rounded-md"
+            className="px-4 py-1 bg-success text-white text-xs font-medium"
+            style={{ borderRadius: "var(--radius-sm)" }}
           >
             Download
           </a>
@@ -117,7 +100,8 @@ export function TopBar({ filename, file, params, canvas, renderer, isVideo }: Pr
             <span className="text-xs text-danger">{error}</span>
             <button
               onClick={() => setState("idle")}
-              className="px-3 py-1 bg-zinc-700 text-zinc-200 text-xs rounded-md hover:bg-zinc-600 transition-colors"
+              className="px-3 py-1 bg-zinc-700 text-zinc-200 text-xs hover:bg-zinc-600 transition-colors"
+              style={{ borderRadius: "var(--radius-sm)" }}
             >
               Retry
             </button>
@@ -127,3 +111,5 @@ export function TopBar({ filename, file, params, canvas, renderer, isVideo }: Pr
     </div>
   );
 }
+
+export type { ExportState };

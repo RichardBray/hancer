@@ -67,12 +67,17 @@ export function App() {
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
   const [animating, setAnimating] = useState(false);
   const [showSaveAsNew, setShowSaveAsNew] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
   const hoverParamsRef = useRef<PreviewParams | null>(null);
 
   const {
     looks, activeLook, activeLookParams,
     refreshLooks, loadLook, clearLook, saveLook, createLook, deleteLook, renameLook, importLook, restoreActiveLook,
   } = useLooks();
+
+  const hasChanges = activeLookParams !== null && Object.keys(activeLookParams).some(
+    key => activeLookParams[key] !== params[key]
+  );
 
   // History tracks {params, activeLook}. Only these are undoable — file
   // uploads, look CRUD, hover previews, scrub, and resizing are not.
@@ -233,7 +238,18 @@ export function App() {
   if (!objectUrl) {
     return (
       <div className="h-screen flex flex-col bg-zinc-950 relative">
-        <TopBar filename={null} file={null} params={params} canvas={null} renderer={null} isVideo={false} />
+        <TopBar
+          filename={null}
+          file={null}
+          params={params}
+          canvas={null}
+          renderer={null}
+          isVideo={false}
+          hasChanges={false}
+          onSave={() => {}}
+          onSaveAsNew={() => {}}
+          onExportClick={() => {}}
+        />
         <UploadZone onFile={upload} />
         {uploadError && (
           <div className="absolute left-1/2 -translate-x-1/2 bottom-8 flex items-center gap-3 bg-zinc-900 border border-danger/50 px-4 py-2 rounded-md text-xs text-danger">
@@ -254,6 +270,10 @@ export function App() {
         canvas={canvas}
         renderer={renderer}
         isVideo={isVideo}
+        hasChanges={hasChanges}
+        onSave={handleSave}
+        onSaveAsNew={handleSaveAsNew}
+        onExportClick={() => setShowExportModal(true)}
       />
 
       <div className="flex-1 flex overflow-hidden">
@@ -344,9 +364,6 @@ export function App() {
             values={params}
             onChange={handleParamChange}
             onCommit={commitHistory}
-            activeLookParams={activeLookParams}
-            onSave={handleSave}
-            onSaveAsNew={handleSaveAsNew}
             animating={animating}
           />
         </div>
