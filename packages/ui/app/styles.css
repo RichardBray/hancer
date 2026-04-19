@@ -7,6 +7,19 @@
   --color-success: #16a34a;
 }
 
+:root {
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --pad-modal: 24px;
+  --pad-field-gap: 20px;
+  --pad-btn: 8px 16px;
+  --pad-btn-primary: 10px 20px;
+  --pad-menu-item: 8px 16px;
+
+  --slider-track: rgba(255,255,255,0.15);
+  --slider-thumb: rgba(255,255,255,0.6);
+}
+
 /* Base reset - replaces inline styles from index.html */
 *,
 *::before,
