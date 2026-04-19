@@ -98,6 +98,25 @@ Expand to show all saved look metadata. Fields are hidden entirely when empty (n
 - **Characteristics** — pill chips.
 - Single `Close` button. Uses new radius/padding scale (§4).
 
+### 8. View Mode Switcher (new: `packages/ui/app/components/ViewModeToolbar.tsx`)
+
+A floating, horizontally-centered icon strip positioned just below the top bar, overlaid above the canvas region. Three mutually-exclusive modes:
+
+- **Normal** (rectangle icon) — default. Processed canvas only. Current behavior.
+- **Before/After Split** (split-rectangle icon) — vertical divider on the canvas. Left = original upload, right = processed. Drag the divider handle to wipe horizontally. Divider position is session-state (not persisted).
+- **Reference Compare** (split-rectangle-with-upload icon) — prompts the user to upload a reference image if none chosen yet (small upload affordance inside the canvas region). Left = processed canvas, right = user reference, split by vertical wipe divider. Reference is scaled to **fit canvas bounds** with letterboxing if aspect differs. Reference image is held in session state only; cleared when switching files or closing the app. A small "Replace reference" / "Clear" affordance appears when a reference is loaded.
+
+**Styling:**
+
+- Strip is semi-transparent dark, uses new `--radius-sm`, padding `6px 8px`.
+- Icons monochrome gray, ~18px, active mode gets higher-contrast fill.
+- Only one mode active at a time; clicking the active icon is a no-op.
+
+**Interaction:**
+
+- Divider handle: vertical line with a small grab affordance at vertical center. Drag anywhere on the divider to move it. Keyboard: no shortcut in v1.
+- Modes 2 and 3 require both images to be present; if the source upload is missing, the icon is disabled.
+
 ## Affected Files
 
 - `packages/ui/app/components/TopBar.tsx` — restructure, integrate save/export.
@@ -108,6 +127,8 @@ Expand to show all saved look metadata. Fields are hidden entirely when empty (n
 - `packages/ui/app/components/LookContextMenu.tsx` — radius/padding.
 - `packages/ui/app/components/NewLookModal.tsx`, `DeleteLookModal.tsx`, `LookInfoModal.tsx` — radius/padding + Info expansion.
 - `packages/ui/app/components/ExportModal.tsx` — new.
+- `packages/ui/app/components/ViewModeToolbar.tsx` — new.
+- `packages/ui/app/components/Canvas.tsx` — split-compare rendering for modes 2 and 3.
 - `packages/ui/app/styles.css` — CSS variables for radius/padding.
 
 ## Testing
