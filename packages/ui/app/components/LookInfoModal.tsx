@@ -10,38 +10,60 @@ interface Props {
   onClose: () => void;
 }
 
+function Chips({ items }: { items: string[] }) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {items.map(v => (
+        <span
+          key={v}
+          className="px-2 py-0.5 bg-zinc-700 text-zinc-200 text-[11px]"
+          style={{ borderRadius: "var(--radius-sm)" }}
+        >
+          {v}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export function LookInfoModal({ info, onClose }: Props) {
+  const hasDesc = !!info.description && info.description.trim().length > 0;
+  const hasKeywords = info.keywords && info.keywords.length > 0;
+  const hasChars = info.characteristics && info.characteristics.length > 0;
+
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={onClose}>
       <div
-        className="bg-zinc-800 border border-zinc-700 rounded-xl p-5 max-w-md w-full mx-4 shadow-2xl"
+        className="bg-zinc-800 border border-zinc-700 max-w-md w-full mx-4 shadow-2xl"
+        style={{ borderRadius: "var(--radius-md)", padding: "var(--pad-modal)" }}
         onClick={e => e.stopPropagation()}
       >
-        <h3 className="text-sm font-semibold text-zinc-200 mb-3">{info.name}</h3>
-        <div className="flex flex-col gap-2 text-xs">
-          {info.description && (
+        <h3 className="text-sm font-semibold text-zinc-200 mb-4">{info.name}</h3>
+        <div className="flex flex-col gap-5 text-xs">
+          {hasDesc && (
             <div>
-              <span className="text-zinc-400">Description: </span>
-              <span className="text-zinc-200">{info.description}</span>
+              <div className="text-zinc-400 mb-1">Description</div>
+              <div className="text-zinc-200 leading-relaxed">{info.description}</div>
             </div>
           )}
-          {info.keywords && info.keywords.length > 0 && (
+          {hasKeywords && (
             <div>
-              <span className="text-zinc-400">Keywords: </span>
-              <span className="text-zinc-200">{info.keywords.join(", ")}</span>
+              <div className="text-zinc-400 mb-1.5">Keywords</div>
+              <Chips items={info.keywords!} />
             </div>
           )}
-          {info.characteristics && info.characteristics.length > 0 && (
+          {hasChars && (
             <div>
-              <span className="text-zinc-400">Characteristics: </span>
-              <span className="text-zinc-200">{info.characteristics.join(", ")}</span>
+              <div className="text-zinc-400 mb-1.5">Characteristics</div>
+              <Chips items={info.characteristics!} />
             </div>
           )}
         </div>
-        <div className="flex justify-end mt-4">
+        <div className="flex justify-end mt-6">
           <button
             onClick={onClose}
-            className="px-4 py-1.5 text-xs text-zinc-300 bg-zinc-700 rounded-lg hover:bg-zinc-600 transition-colors"
+            className="text-xs text-zinc-300 bg-zinc-700 hover:bg-zinc-600 transition-colors"
+            style={{ borderRadius: "var(--radius-sm)", padding: "var(--pad-btn)" }}
           >
             Close
           </button>
