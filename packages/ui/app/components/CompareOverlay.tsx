@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 interface Props {
   mode: "split" | "reference";
@@ -11,7 +11,6 @@ interface Props {
 }
 
 export function CompareOverlay({ mode, position, onPositionChange, overlaySrc, isVideo, videoRef, canvasRect }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null);
   const localVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -51,7 +50,7 @@ export function CompareOverlay({ mode, position, onPositionChange, overlaySrc, i
     top: canvasRect.top,
     width: canvasRect.width,
     height: canvasRect.height,
-    clipPath: `inset(0 ${(1 - position) * 100}% 0 0)`,
+    clipPath: `inset(0 0 0 ${position * 100}%)`,
     pointerEvents: "none",
     objectFit: mode === "reference" ? "contain" : "fill",
     background: mode === "reference" ? "#000" : "transparent",
@@ -68,7 +67,7 @@ export function CompareOverlay({ mode, position, onPositionChange, overlaySrc, i
   };
 
   return (
-    <div ref={containerRef}>
+    <>
       {mode === "split" && isVideo ? (
         <video ref={localVideoRef} src={overlaySrc} style={overlayStyle} muted playsInline />
       ) : (
@@ -81,6 +80,6 @@ export function CompareOverlay({ mode, position, onPositionChange, overlaySrc, i
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-white/80 rounded-full cursor-ew-resize flex items-center justify-center text-[10px] text-zinc-800 font-bold"
         >‹›</div>
       </div>
-    </div>
+    </>
   );
 }
