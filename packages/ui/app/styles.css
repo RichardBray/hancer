@@ -5,19 +5,23 @@
   --color-accent-hover: #2563eb;
   --color-danger: #ef4444;
   --color-success: #16a34a;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+
+  --color-slider-track: rgba(255,255,255,0.15);
+  --color-slider-thumb: rgba(255,255,255,0.6);
 }
 
 :root {
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --pad-modal: 24px;
   --pad-field-gap: 20px;
-  --pad-btn: 8px 16px;
-  --pad-btn-primary: 10px 20px;
-  --pad-menu-item: 8px 16px;
+}
 
-  --slider-track: rgba(255,255,255,0.15);
-  --slider-thumb: rgba(255,255,255,0.6);
+@layer components {
+  .p-btn         { padding: 8px 16px; }
+  .p-btn-primary { padding: 10px 20px; }
+  .p-modal       { padding: 24px; }
+  .p-menu-item   { padding: 8px 16px; }
 }
 
 /* Base reset - replaces inline styles from index.html */

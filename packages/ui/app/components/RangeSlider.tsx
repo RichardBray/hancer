@@ -61,10 +61,7 @@ export function RangeSlider({ label, value, min, max, step, onChange, onCommit, 
         )}
       </div>
       <div className="relative h-4 flex items-center">
-        <div
-          className="absolute inset-x-0"
-          style={{ height: "1px", background: "var(--slider-track)" }}
-        />
+        <div className="absolute inset-x-0 h-px bg-slider-track" />
         <input
           type="range"
           min={min}
@@ -80,11 +77,8 @@ export function RangeSlider({ label, value, min, max, step, onChange, onCommit, 
           className={`absolute inset-0 w-full opacity-0 cursor-pointer ${animating ? "animating" : ""}`}
         />
         <div
-          className={`absolute w-2.5 h-2.5 rounded-full pointer-events-none ${animating ? "transition-all duration-300 ease-out" : ""}`}
-          style={{
-            left: `calc(${fillPercent}% - 5px)`,
-            background: "var(--slider-thumb)",
-          }}
+          className={`absolute w-2.5 h-2.5 rounded-full pointer-events-none bg-slider-thumb ${animating ? "transition-all duration-300 ease-out" : ""}`}
+          style={{ left: `calc(${fillPercent}% - 5px)` }}
         />
       </div>
     </div>

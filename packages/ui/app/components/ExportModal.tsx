@@ -60,8 +60,7 @@ export function ExportModal({ defaultBasename, onCancel, onExport }: Props) {
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={onCancel}>
       <div
-        className="bg-zinc-800 border border-zinc-700 max-w-md w-full mx-4 shadow-2xl"
-        style={{ borderRadius: "var(--radius-md)", padding: "var(--pad-modal)" }}
+        className="bg-zinc-800 border border-zinc-700 max-w-md w-full mx-4 shadow-2xl rounded-md p-modal"
         onClick={e => e.stopPropagation()}
       >
         <h3 className="text-sm font-semibold text-zinc-200 mb-5">Export</h3>
@@ -72,8 +71,7 @@ export function ExportModal({ defaultBasename, onCancel, onExport }: Props) {
             <select
               value={codec}
               onChange={e => onCodecChange(e.target.value as Codec)}
-              className="w-full bg-zinc-900 border border-zinc-700 text-zinc-200 px-2 py-1.5"
-              style={{ borderRadius: "var(--radius-sm)" }}
+              className="w-full bg-zinc-900 border border-zinc-700 text-zinc-200 px-2 py-1.5 rounded-sm"
             >
               <option>H.264</option>
               <option>H.265</option>
@@ -87,8 +85,7 @@ export function ExportModal({ defaultBasename, onCancel, onExport }: Props) {
               value={quality}
               onChange={e => setQuality(e.target.value as Quality)}
               disabled={isProRes}
-              className="w-full bg-zinc-900 border border-zinc-700 text-zinc-200 px-2 py-1.5 disabled:opacity-50"
-              style={{ borderRadius: "var(--radius-sm)" }}
+              className="w-full bg-zinc-900 border border-zinc-700 text-zinc-200 px-2 py-1.5 rounded-sm disabled:opacity-50"
             >
               <option>Visually Lossless</option>
               <option>High</option>
@@ -107,13 +104,11 @@ export function ExportModal({ defaultBasename, onCancel, onExport }: Props) {
                 type="text"
                 readOnly
                 value={outputPath}
-                className="flex-1 bg-zinc-900 border border-zinc-700 text-zinc-200 px-2 py-1.5"
-                style={{ borderRadius: "var(--radius-sm)" }}
+                className="flex-1 bg-zinc-900 border border-zinc-700 text-zinc-200 px-2 py-1.5 rounded-sm"
               />
               <button
                 onClick={onChooseFile}
-                className="bg-zinc-700 text-zinc-200 hover:bg-zinc-600 transition-colors"
-                style={{ borderRadius: "var(--radius-sm)", padding: "var(--pad-btn)" }}
+                className="bg-zinc-700 text-zinc-200 hover:bg-zinc-600 transition-colors rounded-sm p-btn"
               >
                 Choose…
               </button>
@@ -124,15 +119,13 @@ export function ExportModal({ defaultBasename, onCancel, onExport }: Props) {
         <div className="flex justify-end gap-2 mt-6">
           <button
             onClick={onCancel}
-            className="text-xs text-zinc-300 bg-zinc-700 hover:bg-zinc-600 transition-colors"
-            style={{ borderRadius: "var(--radius-sm)", padding: "var(--pad-btn)" }}
+            className="text-xs text-zinc-300 bg-zinc-700 hover:bg-zinc-600 transition-colors rounded-sm p-btn"
           >
             Cancel
           </button>
           <button
             onClick={submit}
-            className="text-xs text-white bg-accent hover:bg-accent-hover transition-colors"
-            style={{ borderRadius: "var(--radius-sm)", padding: "var(--pad-btn-primary)" }}
+            className="text-xs text-white bg-accent hover:bg-accent-hover transition-colors rounded-sm p-btn-primary"
           >
             Export
           </button>

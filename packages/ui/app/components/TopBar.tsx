@@ -70,8 +70,7 @@ export function TopBar({
         {state === "idle" && file && (
           <button
             onClick={isVideo ? onExportClick : downloadImage}
-            className="px-4 py-1.5 bg-accent text-white text-xs font-medium hover:bg-accent-hover transition-colors"
-            style={{ borderRadius: "var(--radius-sm)" }}
+            className="px-4 py-1.5 bg-accent text-white text-xs font-medium rounded-sm hover:bg-accent-hover transition-colors"
           >
             {isVideo ? "Export" : "Download"}
           </button>
@@ -82,7 +81,7 @@ export function TopBar({
             <span className="text-xs text-zinc-400">
               {state === "uploading" ? "Uploading..." : `${Math.round(progress * 100)}%`}
             </span>
-            <div className="w-24 h-1.5 bg-zinc-700 overflow-hidden" style={{ borderRadius: "var(--radius-sm)" }}>
+            <div className="w-24 h-1.5 bg-zinc-700 overflow-hidden rounded-sm">
               <div
                 className="h-full bg-accent transition-[width] duration-200"
                 style={{ width: `${progress * 100}%` }}
@@ -96,8 +95,7 @@ export function TopBar({
             href={downloadUrl}
             download
             onClick={() => onExportDone?.()}
-            className="px-4 py-1.5 bg-success text-white text-xs font-medium"
-            style={{ borderRadius: "var(--radius-sm)" }}
+            className="px-4 py-1.5 bg-success text-white text-xs font-medium rounded-sm"
           >
             Download
           </a>
@@ -108,8 +106,7 @@ export function TopBar({
             <span className="text-xs text-danger">{error}</span>
             <button
               onClick={() => onExportDone?.()}
-              className="px-3 py-1 bg-zinc-700 text-zinc-200 text-xs hover:bg-zinc-600 transition-colors"
-              style={{ borderRadius: "var(--radius-sm)" }}
+              className="px-3 py-1 bg-zinc-700 text-zinc-200 text-xs rounded-sm hover:bg-zinc-600 transition-colors"
             >
               Retry
             </button>
