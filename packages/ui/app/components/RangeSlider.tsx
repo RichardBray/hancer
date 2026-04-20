@@ -38,7 +38,7 @@ export function RangeSlider({ label, value, min, max, step, onChange, onCommit, 
   const fillPercent = ((value - min) / (max - min)) * 100;
 
   return (
-    <div className={`flex flex-col text-xs py-2 ${disabled ? "opacity-40 pointer-events-none" : ""}`}>
+    <div className={`flex flex-col text-xs ${disabled ? "opacity-40 pointer-events-none" : ""}`}>
       <div className="flex items-center justify-between">
         <span className="text-zinc-400 truncate">{label}</span>
         {editing ? (

@@ -9,7 +9,7 @@ export function ResizeDivider({ direction, onMouseDown }: Props) {
     <div
       onMouseDown={onMouseDown}
       className={`
-        flex-shrink-0 bg-zinc-800 hover:bg-zinc-600 transition-colors
+        flex-shrink-0 bg-transparent hover:bg-zinc-600 transition-colors
         ${isHorizontal ? "w-1 cursor-col-resize" : "h-1 cursor-row-resize"}
       `}
     />

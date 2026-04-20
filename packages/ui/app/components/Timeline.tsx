@@ -109,53 +109,82 @@ export function Timeline({ videoRef }: Props) {
     else videoRef.pause();
   }, [videoRef]);
 
+  const skipToStart = useCallback(() => {
+    if (!videoRef) return;
+    videoRef.currentTime = 0;
+    setCurrentTime(0);
+  }, [videoRef]);
+
+  const skipToEnd = useCallback(() => {
+    if (!videoRef || !duration) return;
+    videoRef.currentTime = duration;
+    setCurrentTime(duration);
+  }, [videoRef, duration]);
+
   const playheadPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const ticks = computeTicks(duration);
 
   return (
     <div className="flex flex-col h-full bg-zinc-900 border-t border-zinc-800 select-none">
-      {/* Transport row */}
-      <div className="flex items-center px-3 py-1.5 gap-3">
-        <button
-          onClick={togglePlay}
-          className="text-zinc-300 hover:text-white transition-colors flex-shrink-0"
-          aria-label={playing ? "Pause" : "Play"}
-        >
-          {playing ? (
+      {/* Transport bar */}
+      <div className="relative flex items-center px-3 py-2 bg-zinc-800">
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-4 text-zinc-300">
+          <button
+            onClick={skipToStart}
+            className="hover:text-white transition-colors"
+            aria-label="Skip to start"
+          >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <rect x="6" y="4" width="4" height="16" />
-              <rect x="14" y="4" width="4" height="16" />
+              <rect x="5" y="5" width="2" height="14" />
+              <polygon points="20,5 20,19 9,12" />
             </svg>
-          ) : (
+          </button>
+          <button
+            onClick={togglePlay}
+            className="hover:text-white transition-colors"
+            aria-label={playing ? "Pause" : "Play"}
+          >
+            {playing ? (
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <rect x="6" y="4" width="4" height="16" />
+                <rect x="14" y="4" width="4" height="16" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <polygon points="5,3 19,12 5,21" />
+              </svg>
+            )}
+          </button>
+          <button
+            onClick={skipToEnd}
+            className="hover:text-white transition-colors"
+            aria-label="Skip to end"
+          >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <polygon points="5,3 19,12 5,21" />
+              <polygon points="4,5 4,19 15,12" />
+              <rect x="17" y="5" width="2" height="14" />
             </svg>
-          )}
-        </button>
-        <div className="flex-1 flex justify-center">
-          <span className="text-sm text-zinc-300 tabular-nums px-3 py-0.5 bg-slider-track rounded-sm">
-            {formatTimecodeFrames(currentTime)}
-          </span>
+          </button>
         </div>
-        <span className="text-[11px] text-zinc-500 tabular-nums flex-shrink-0">
-          {formatTimecode(duration)}
+        <span className="ml-auto text-sm text-zinc-300 tabular-nums px-2 py-0.5">
+          {formatTimecodeFrames(currentTime)}
         </span>
       </div>
 
       {/* Scrubber + ruler */}
       <div
         ref={trackRef}
-        className="relative flex-1 cursor-pointer"
+        className="relative flex-1 cursor-pointer overflow-hidden"
         onMouseDown={onMouseDown}
       >
-        <div className="absolute top-1/2 -translate-y-1/2 inset-x-0 h-6 bg-zinc-800 rounded-sm" />
+        <div className="absolute top-6 inset-x-0 h-2 bg-zinc-800 rounded-sm" />
 
         {/* Ruler strip */}
-        <div className="absolute bottom-0 inset-x-0 h-4 pointer-events-none">
+        <div className="absolute top-0 inset-x-0 h-4 pointer-events-none">
           {ticks.majors.map((time, i) => {
             const percent = (time / duration) * 100;
             return (
-              <div key={`M${i}`} className="absolute bottom-0" style={{ left: `${percent}%` }}>
+              <div key={`M${i}`} className="absolute top-0" style={{ left: `${percent}%` }}>
                 <div className="w-px h-2 bg-zinc-500" />
                 <div className="text-[9px] text-zinc-500 tabular-nums -translate-x-1/2 mt-0.5">
                   {formatTimecode(time)}
@@ -172,7 +201,7 @@ export function Timeline({ videoRef }: Props) {
               return (
                 <div
                   key={`m${i}-${j}`}
-                  className="absolute bottom-0 w-px h-1 bg-zinc-600"
+                  className="absolute top-0 w-px h-1 bg-zinc-600"
                   style={{ left: `${percent}%` }}
                 />
               );
