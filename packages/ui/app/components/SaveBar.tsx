@@ -16,14 +16,12 @@ export function SaveBar({ hasChanges, onSave, onSaveAsNew }: Props) {
             ? "px-4 py-1.5 bg-accent text-white text-xs font-medium rounded-sm hover:bg-accent-hover transition-colors"
             : "px-4 py-1.5 bg-zinc-800 text-zinc-400 text-xs font-medium rounded-sm cursor-default"
         }
-        style={{ borderRadius: "var(--radius-sm)" }}
       >
         {hasChanges ? "Save" : "Saved ✓"}
       </button>
       <button
         onClick={onSaveAsNew}
-        className="px-4 py-1.5 bg-zinc-700 text-zinc-200 text-xs font-medium hover:bg-zinc-600 transition-colors"
-        style={{ borderRadius: "var(--radius-sm)" }}
+        className="px-4 py-1.5 bg-zinc-700 text-zinc-200 text-xs font-medium rounded-sm hover:bg-zinc-600 transition-colors"
       >
         Save As New
       </button>

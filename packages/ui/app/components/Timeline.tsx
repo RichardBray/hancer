@@ -133,13 +133,7 @@ export function Timeline({ videoRef }: Props) {
           )}
         </button>
         <div className="flex-1 flex justify-center">
-          <span
-            className="text-sm text-zinc-300 tabular-nums px-3 py-0.5"
-            style={{
-              background: "var(--slider-track)",
-              borderRadius: "var(--radius-sm)",
-            }}
-          >
+          <span className="text-sm text-zinc-300 tabular-nums px-3 py-0.5 bg-slider-track rounded-sm">
             {formatTimecodeFrames(currentTime)}
           </span>
         </div>
@@ -154,7 +148,7 @@ export function Timeline({ videoRef }: Props) {
         className="relative flex-1 cursor-pointer"
         onMouseDown={onMouseDown}
       >
-        <div className="absolute top-1/2 -translate-y-1/2 inset-x-0 h-6 bg-zinc-800" style={{ borderRadius: "var(--radius-sm)" }} />
+        <div className="absolute top-1/2 -translate-y-1/2 inset-x-0 h-6 bg-zinc-800 rounded-sm" />
 
         {/* Ruler strip */}
         <div className="absolute bottom-0 inset-x-0 h-4 pointer-events-none">

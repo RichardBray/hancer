@@ -40,19 +40,17 @@ function IconRedo() {
 export function ViewModeToolbar({ mode, onChange, referenceDisabled, splitDisabled, canUndo, canRedo, onUndo, onRedo }: Props) {
   const isMac = typeof navigator !== "undefined" && /Mac/i.test(navigator.platform);
   const mod = isMac ? "⌘" : "Ctrl";
-  const base = "p-1.5 transition-colors";
+  const base = "p-1.5 rounded-sm transition-colors";
   const active = "text-zinc-100 bg-zinc-700";
   const idle = "text-zinc-400 hover:text-zinc-200";
   const disabled = "text-zinc-600 cursor-not-allowed";
   return (
     <div
-      className="absolute top-3 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-zinc-900/90 border border-zinc-800 z-20"
-      style={{ borderRadius: "var(--radius-sm)", padding: "4px 6px" }}
+      className="absolute top-3 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-zinc-900/90 border border-zinc-800 z-20 rounded-sm px-1.5 py-1"
     >
       <button
         onClick={() => onChange("normal")}
         className={`${base} ${mode === "normal" ? active : idle}`}
-        style={{ borderRadius: "var(--radius-sm)" }}
         aria-label="Normal view"
         title="Normal view"
       ><IconNormal /></button>
@@ -60,7 +58,6 @@ export function ViewModeToolbar({ mode, onChange, referenceDisabled, splitDisabl
         onClick={() => !splitDisabled && onChange("split")}
         disabled={splitDisabled}
         className={`${base} ${mode === "split" ? active : splitDisabled ? disabled : idle}`}
-        style={{ borderRadius: "var(--radius-sm)" }}
         aria-label="Split compare"
         title="Split compare"
       ><IconSplit /></button>
@@ -68,7 +65,6 @@ export function ViewModeToolbar({ mode, onChange, referenceDisabled, splitDisabl
         onClick={() => !referenceDisabled && onChange("reference")}
         disabled={referenceDisabled}
         className={`${base} ${mode === "reference" ? active : referenceDisabled ? disabled : idle}`}
-        style={{ borderRadius: "var(--radius-sm)" }}
         aria-label="Reference compare"
         title="Reference compare"
       ><IconReference /></button>
@@ -77,7 +73,6 @@ export function ViewModeToolbar({ mode, onChange, referenceDisabled, splitDisabl
         onClick={onUndo}
         disabled={!canUndo}
         className={`${base} ${canUndo ? idle : disabled}`}
-        style={{ borderRadius: "var(--radius-sm)" }}
         aria-label="Undo"
         title={`Undo (${mod}Z)`}
       ><IconUndo /></button>
@@ -85,7 +80,6 @@ export function ViewModeToolbar({ mode, onChange, referenceDisabled, splitDisabl
         onClick={onRedo}
         disabled={!canRedo}
         className={`${base} ${canRedo ? idle : disabled}`}
-        style={{ borderRadius: "var(--radius-sm)" }}
         aria-label="Redo"
         title={`Redo (${mod}⇧Z)`}
       ><IconRedo /></button>

@@ -73,6 +73,18 @@ export function App() {
   const [canvasRect, setCanvasRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
   const hoverParamsRef = useRef<PreviewParams | null>(null);
 
+  function chooseReferenceImage() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      setReferenceImage(URL.createObjectURL(file));
+    };
+    input.click();
+  }
+
   useEffect(() => {
     setPreviewError(null);
     setProxyState("idle");
@@ -486,26 +498,16 @@ export function App() {
       )}
       {viewMode === "reference" && !referenceImage && canvasRect && (
         <div
-          className="absolute bg-zinc-900/90 border border-zinc-700 px-4 py-3 z-30 flex flex-col items-center gap-2"
+          className="absolute bg-zinc-900/90 border border-zinc-700 px-4 py-3 z-30 flex flex-col items-center gap-2 rounded-md"
           style={{
             left: canvasRect.left + canvasRect.width / 2 - 110,
             top: canvasRect.top + canvasRect.height / 2 - 30,
-            borderRadius: "var(--radius-md)",
           }}
         >
           <div className="text-xs text-zinc-300">Upload a reference image</div>
           <button
-            onClick={() => {
-              const i = document.createElement("input");
-              i.type = "file"; i.accept = "image/*";
-              i.onchange = () => {
-                const f = i.files?.[0]; if (!f) return;
-                setReferenceImage(URL.createObjectURL(f));
-              };
-              i.click();
-            }}
-            className="text-xs text-white bg-accent hover:bg-accent-hover"
-            style={{ borderRadius: "var(--radius-sm)", padding: "var(--pad-btn)" }}
+            onClick={chooseReferenceImage}
+            className="text-xs text-white bg-accent hover:bg-accent-hover rounded-sm p-btn"
           >Choose image…</button>
         </div>
       )}
@@ -521,12 +523,10 @@ export function App() {
           />
           <button
             onClick={() => setReferenceImage(null)}
-            className="absolute text-[11px] text-zinc-300 bg-zinc-800/90 border border-zinc-700 hover:bg-zinc-700 z-30"
+            className="absolute text-[11px] text-zinc-300 bg-zinc-800/90 border border-zinc-700 hover:bg-zinc-700 z-30 rounded-sm px-2.5 py-1"
             style={{
               right: `calc(100vw - ${canvasRect.left + canvasRect.width}px + 8px)`,
               top: canvasRect.top + 8,
-              borderRadius: "var(--radius-sm)",
-              padding: "4px 10px",
             }}
           >Replace reference</button>
         </>

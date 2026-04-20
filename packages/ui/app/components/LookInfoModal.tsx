@@ -16,8 +16,7 @@ function Chips({ items }: { items: string[] }) {
       {items.map(v => (
         <span
           key={v}
-          className="px-2 py-0.5 bg-zinc-700 text-zinc-200 text-[11px]"
-          style={{ borderRadius: "var(--radius-sm)" }}
+          className="px-2 py-0.5 bg-zinc-700 text-zinc-200 text-[11px] rounded-sm"
         >
           {v}
         </span>
@@ -34,8 +33,7 @@ export function LookInfoModal({ info, onClose }: Props) {
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={onClose}>
       <div
-        className="bg-zinc-800 border border-zinc-700 max-w-md w-full mx-4 shadow-2xl"
-        style={{ borderRadius: "var(--radius-md)", padding: "var(--pad-modal)" }}
+        className="bg-zinc-800 border border-zinc-700 max-w-md w-full mx-4 shadow-2xl rounded-md p-modal"
         onClick={e => e.stopPropagation()}
       >
         <h3 className="text-sm font-semibold text-zinc-200 mb-4">{info.name}</h3>
@@ -62,8 +60,7 @@ export function LookInfoModal({ info, onClose }: Props) {
         <div className="flex justify-end mt-6">
           <button
             onClick={onClose}
-            className="text-xs text-zinc-300 bg-zinc-700 hover:bg-zinc-600 transition-colors"
-            style={{ borderRadius: "var(--radius-sm)", padding: "var(--pad-btn)" }}
+            className="text-xs text-zinc-300 bg-zinc-700 hover:bg-zinc-600 transition-colors rounded-sm p-btn"
           >
             Close
           </button>

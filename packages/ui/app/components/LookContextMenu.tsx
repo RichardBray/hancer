@@ -22,27 +22,24 @@ export function LookContextMenu({ x, y, onRename, onDelete, onInfo, onClose }: P
     <div className="fixed inset-0 z-40" onMouseDown={handleBackdropMouseDown}>
       <div
         ref={menuRef}
-        className="fixed bg-zinc-800 border border-zinc-600 shadow-xl z-50 min-w-[140px]"
-        style={{ left: x, top: y, borderRadius: "var(--radius-sm)", padding: "6px 0" }}
+        className="fixed bg-zinc-800 border border-zinc-600 shadow-xl z-50 min-w-[140px] rounded-sm py-1.5"
+        style={{ left: x, top: y }}
       >
         <button
           onClick={() => { onInfo(); onClose(); }}
-          className="w-full text-left text-xs text-zinc-200 hover:bg-zinc-700 transition-colors"
-          style={{ padding: "var(--pad-menu-item)" }}
+          className="w-full text-left text-xs text-zinc-200 hover:bg-zinc-700 transition-colors p-menu-item"
         >
           Info
         </button>
         <button
           onClick={() => { onRename(); onClose(); }}
-          className="w-full text-left text-xs text-zinc-200 hover:bg-zinc-700 transition-colors"
-          style={{ padding: "var(--pad-menu-item)" }}
+          className="w-full text-left text-xs text-zinc-200 hover:bg-zinc-700 transition-colors p-menu-item"
         >
           Rename
         </button>
         <button
           onClick={() => { onDelete(); onClose(); }}
-          className="w-full text-left text-xs text-red-400 hover:bg-zinc-700 transition-colors"
-          style={{ padding: "var(--pad-menu-item)" }}
+          className="w-full text-left text-xs text-red-400 hover:bg-zinc-700 transition-colors p-menu-item"
         >
           Delete
         </button>
