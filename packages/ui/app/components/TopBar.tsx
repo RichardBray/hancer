@@ -1,7 +1,14 @@
-import { useState } from "react";
 import type { Renderer } from "../gpu/renderer";
-import { consumeSSE } from "../lib/sse";
 import { SaveBar } from "./SaveBar";
+
+type ExportState = "idle" | "uploading" | "rendering" | "done" | "error";
+
+interface ExportProgress {
+  state: ExportState;
+  progress: number;
+  downloadUrl: string | null;
+  error: string | null;
+}
 
 interface Props {
   filename: string | null;
@@ -14,18 +21,19 @@ interface Props {
   onSave: () => void;
   onSaveAsNew: () => void;
   onExportClick: () => void;
+  exportProgress?: ExportProgress;
+  onExportDone?: () => void;
 }
 
-type ExportState = "idle" | "uploading" | "rendering" | "done" | "error";
-
 export function TopBar({
-  filename, file, params, canvas, renderer, isVideo,
+  filename, file, canvas, renderer, isVideo,
   hasChanges, onSave, onSaveAsNew, onExportClick,
+  exportProgress, onExportDone,
 }: Props) {
-  const [state, setState] = useState<ExportState>("idle");
-  const [progress, setProgress] = useState(0);
-  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const state: ExportState = exportProgress?.state ?? "idle";
+  const progress = exportProgress?.progress ?? 0;
+  const downloadUrl = exportProgress?.downloadUrl ?? null;
+  const error = exportProgress?.error ?? null;
 
   async function downloadImage() {
     if (!renderer || !canvas) return;
@@ -87,7 +95,7 @@ export function TopBar({
           <a
             href={downloadUrl}
             download
-            onClick={() => setState("idle")}
+            onClick={() => onExportDone?.()}
             className="px-4 py-1 bg-success text-white text-xs font-medium"
             style={{ borderRadius: "var(--radius-sm)" }}
           >
@@ -99,7 +107,7 @@ export function TopBar({
           <div className="flex items-center gap-2">
             <span className="text-xs text-danger">{error}</span>
             <button
-              onClick={() => setState("idle")}
+              onClick={() => onExportDone?.()}
               className="px-3 py-1 bg-zinc-700 text-zinc-200 text-xs hover:bg-zinc-600 transition-colors"
               style={{ borderRadius: "var(--radius-sm)" }}
             >
@@ -112,4 +120,4 @@ export function TopBar({
   );
 }
 
-export type { ExportState };
+export type { ExportState, ExportProgress };
