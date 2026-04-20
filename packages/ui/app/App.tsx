@@ -13,6 +13,7 @@ import { Timeline } from "./components/Timeline";
 import { ResizeDivider } from "./components/ResizeDivider";
 import { NewLookModal } from "./components/NewLookModal";
 import { ExportModal } from "./components/ExportModal";
+import { ViewModeToolbar, type ViewMode } from "./components/ViewModeToolbar";
 import type { Renderer, PreviewParams } from "./gpu/renderer";
 import type { EffectGroup } from "@hance/core";
 import { consumeSSE } from "./lib/sse";
@@ -72,6 +73,9 @@ export function App() {
   const [exportProgress, setExportProgress] = useState<{ state: "idle" | "uploading" | "rendering" | "done" | "error"; progress: number; downloadUrl: string | null; error: string | null }>({
     state: "idle", progress: 0, downloadUrl: null, error: null,
   });
+  const [viewMode, setViewMode] = useState<ViewMode>("normal");
+  const [referenceImage, setReferenceImage] = useState<string | null>(null);
+  const [splitPosition, setSplitPosition] = useState(0.5);
   const hoverParamsRef = useRef<PreviewParams | null>(null);
 
   const {
@@ -329,7 +333,15 @@ export function App() {
         <ResizeDivider direction="horizontal" onMouseDown={leftPanel.onMouseDown} />
 
         {/* Center — Canvas */}
-        <div className="flex-1 flex items-center justify-center p-4 min-w-0">
+        <div className="flex-1 flex items-center justify-center p-4 min-w-0 relative">
+          {file && (
+            <ViewModeToolbar
+              mode={viewMode}
+              onChange={setViewMode}
+              splitDisabled={!file}
+              referenceDisabled={false}
+            />
+          )}
           {previewError && isVideo ? (
             <div className="flex flex-col items-center gap-4 max-w-md text-center p-6 bg-zinc-900 rounded-lg border border-zinc-800">
               <div className="text-sm text-zinc-200">
