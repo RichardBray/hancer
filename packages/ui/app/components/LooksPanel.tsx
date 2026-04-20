@@ -136,6 +136,11 @@ export function LooksPanel({
         </div>
       </div>
 
+      <div className="flex items-center justify-between px-3 py-2 border-t border-zinc-800 text-[11px] text-zinc-500">
+        <span>Hance</span>
+        <span>v0.2.0</span>
+      </div>
+
       <input ref={importRef} type="file" accept=".hlook" className="hidden" onChange={handleImportFile} />
 
       {contextMenu && (
