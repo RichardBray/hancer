@@ -12,6 +12,7 @@ import { UploadZone } from "./components/UploadZone";
 import { Timeline } from "./components/Timeline";
 import { ResizeDivider } from "./components/ResizeDivider";
 import { NewLookModal } from "./components/NewLookModal";
+import { ExportModal } from "./components/ExportModal";
 import type { Renderer, PreviewParams } from "./gpu/renderer";
 import type { EffectGroup } from "@hance/core";
 import { consumeSSE } from "./lib/sse";
@@ -68,6 +69,9 @@ export function App() {
   const [animating, setAnimating] = useState(false);
   const [showSaveAsNew, setShowSaveAsNew] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [exportProgress, setExportProgress] = useState<{ state: "idle" | "uploading" | "rendering" | "done" | "error"; progress: number; downloadUrl: string | null; error: string | null }>({
+    state: "idle", progress: 0, downloadUrl: null, error: null,
+  });
   const hoverParamsRef = useRef<PreviewParams | null>(null);
 
   const {
@@ -192,6 +196,29 @@ export function App() {
     setShowSaveAsNew(true);
   }, []);
 
+  const handleExport = useCallback(async (opts: { codec: string; crf: number; outputPath: string }) => {
+    if (!file) return;
+    setShowExportModal(false);
+    setExportProgress({ state: "uploading", progress: 0, downloadUrl: null, error: null });
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("params", JSON.stringify(params));
+    formData.append("codec", opts.codec);
+    formData.append("crf", String(opts.crf));
+    formData.append("outputName", opts.outputPath);
+    try {
+      const res = await fetch("/api/export", { method: "POST", body: formData });
+      setExportProgress(p => ({ ...p, state: "rendering" }));
+      await consumeSSE(res, {
+        onProgress: (p) => setExportProgress(prev => ({ ...prev, progress: p })),
+        onDone: (data) => setExportProgress({ state: "done", progress: 1, downloadUrl: data.downloadUrl as string, error: null }),
+        onError: (msg) => setExportProgress({ state: "error", progress: 0, downloadUrl: null, error: msg }),
+      });
+    } catch (err) {
+      setExportProgress({ state: "error", progress: 0, downloadUrl: null, error: (err as Error).message });
+    }
+  }, [file, params]);
+
   const handleCreateLook = useCallback((name: string, metadata: { description: string; keywords: string[]; characteristics: string[] }) => {
     createLook(name, params, metadata);
   }, [createLook, params]);
@@ -274,6 +301,8 @@ export function App() {
         onSave={handleSave}
         onSaveAsNew={handleSaveAsNew}
         onExportClick={() => setShowExportModal(true)}
+        exportProgress={exportProgress}
+        onExportDone={() => setExportProgress({ state: "idle", progress: 0, downloadUrl: null, error: null })}
       />
 
       <div className="flex-1 flex overflow-hidden">
@@ -386,6 +415,14 @@ export function App() {
             setShowSaveAsNew(false);
           }}
           onCancel={() => setShowSaveAsNew(false)}
+        />
+      )}
+
+      {showExportModal && file && (
+        <ExportModal
+          defaultBasename={file.name.replace(/\.[^.]+$/, "")}
+          onCancel={() => setShowExportModal(false)}
+          onExport={handleExport}
         />
       )}
     </div>

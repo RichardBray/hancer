@@ -245,6 +245,13 @@ export function createServer(port: number) {
         }
 
         const params: PresetData = JSON.parse(paramsJson);
+        const codecLabel = String(formData.get("codec") ?? "H.264");
+        const crf = Number(formData.get("crf") ?? 23);
+        const outputName = String(formData.get("outputName") ?? "");
+        const codec: "h264" | "h265" | "prores" =
+          codecLabel === "ProRes 422" ? "prores" :
+          codecLabel === "H.265" ? "h265" : "h264";
+        const pixelFormat = codec === "prores" ? "yuv422p10le" : "yuv420p";
         const tempDir = join(tmpdir(), "hance-export");
         if (!existsSync(tempDir)) mkdirSync(tempDir, { recursive: true });
         const inputPath = join(tempDir, file.name);
@@ -256,7 +263,11 @@ export function createServer(port: number) {
           return new Response("Image export is handled client-side", { status: 400 });
         }
 
-        const outputPath = join(tempDir, `export_${Date.now()}.mp4`);
+        const defaultExt = codec === "prores" ? "mov" : "mp4";
+        const safeName = outputName && !outputName.includes("/") && !outputName.includes("\\")
+          ? outputName
+          : `export_${Date.now()}.${defaultExt}`;
+        const outputPath = join(tempDir, safeName);
 
         const stream = new ReadableStream({
           async start(controller) {
@@ -270,6 +281,7 @@ export function createServer(port: number) {
                 (ratio) => {
                   controller.enqueue(encoder.encode(`data: ${JSON.stringify({ progress: ratio })}\n\n`));
                 },
+                { codec, crf, encodePreset: "medium", pixelFormat: pixelFormat as "yuv420p" | "yuv422p10le" },
               );
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true, downloadUrl: `/api/download?path=${encodeURIComponent(outputPath)}` })}\n\n`));
             } catch (err) {
