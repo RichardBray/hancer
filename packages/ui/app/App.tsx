@@ -14,6 +14,7 @@ import { ResizeDivider } from "./components/ResizeDivider";
 import { NewLookModal } from "./components/NewLookModal";
 import { ExportModal } from "./components/ExportModal";
 import { ViewModeToolbar, type ViewMode } from "./components/ViewModeToolbar";
+import { CompareOverlay } from "./components/CompareOverlay";
 import type { Renderer, PreviewParams } from "./gpu/renderer";
 import type { EffectGroup } from "@hance/core";
 import { consumeSSE } from "./lib/sse";
@@ -31,7 +32,24 @@ export function App() {
     setProxyState("idle");
     setProxyProgress(0);
     setProxyErrorMsg(null);
+    setReferenceImage(null);
+    setViewMode("normal");
+    setSplitPosition(0.5);
   }, [objectUrl]);
+
+  useEffect(() => {
+    if (!canvas) { setCanvasRect(null); return; }
+    function update() {
+      const r = canvas!.getBoundingClientRect();
+      setCanvasRect({ left: r.left, top: r.top, width: r.width, height: r.height });
+    }
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(canvas);
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+    return () => { ro.disconnect(); window.removeEventListener("scroll", update, true); window.removeEventListener("resize", update); };
+  }, [canvas]);
 
   useInitialFile(upload);
 
@@ -76,6 +94,7 @@ export function App() {
   const [viewMode, setViewMode] = useState<ViewMode>("normal");
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [splitPosition, setSplitPosition] = useState(0.5);
+  const [canvasRect, setCanvasRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
   const hoverParamsRef = useRef<PreviewParams | null>(null);
 
   const {
@@ -436,6 +455,65 @@ export function App() {
           onCancel={() => setShowExportModal(false)}
           onExport={handleExport}
         />
+      )}
+
+      {viewMode === "split" && previewSrc && canvasRect && (
+        <CompareOverlay
+          mode="split"
+          position={splitPosition}
+          onPositionChange={setSplitPosition}
+          overlaySrc={previewSrc}
+          isVideo={isVideo}
+          videoRef={videoElement}
+          canvasRect={canvasRect}
+        />
+      )}
+      {viewMode === "reference" && !referenceImage && canvasRect && (
+        <div
+          className="absolute bg-zinc-900/90 border border-zinc-700 px-4 py-3 z-30 flex flex-col items-center gap-2"
+          style={{
+            left: canvasRect.left + canvasRect.width / 2 - 110,
+            top: canvasRect.top + canvasRect.height / 2 - 30,
+            borderRadius: "var(--radius-md)",
+          }}
+        >
+          <div className="text-xs text-zinc-300">Upload a reference image</div>
+          <button
+            onClick={() => {
+              const i = document.createElement("input");
+              i.type = "file"; i.accept = "image/*";
+              i.onchange = () => {
+                const f = i.files?.[0]; if (!f) return;
+                setReferenceImage(URL.createObjectURL(f));
+              };
+              i.click();
+            }}
+            className="text-xs text-white bg-accent hover:bg-accent-hover"
+            style={{ borderRadius: "var(--radius-sm)", padding: "var(--pad-btn)" }}
+          >Choose image…</button>
+        </div>
+      )}
+      {viewMode === "reference" && referenceImage && canvasRect && (
+        <>
+          <CompareOverlay
+            mode="reference"
+            position={splitPosition}
+            onPositionChange={setSplitPosition}
+            overlaySrc={referenceImage}
+            isVideo={false}
+            canvasRect={canvasRect}
+          />
+          <button
+            onClick={() => setReferenceImage(null)}
+            className="absolute text-[11px] text-zinc-300 bg-zinc-800/90 border border-zinc-700 hover:bg-zinc-700 z-30"
+            style={{
+              right: `calc(100vw - ${canvasRect.left + canvasRect.width}px + 8px)`,
+              top: canvasRect.top + 8,
+              borderRadius: "var(--radius-sm)",
+              padding: "4px 10px",
+            }}
+          >Replace reference</button>
+        </>
       )}
     </div>
   );
