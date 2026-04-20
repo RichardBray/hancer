@@ -192,21 +192,25 @@ export function Timeline({ videoRef }: Props) {
               </div>
             );
           })}
-          {ticks.majors.flatMap((time, i) => {
+          {(() => {
+            if (!ticks.majorInterval) return null;
             const step = ticks.majorInterval / (ticks.minorsPerMajor + 1);
-            return Array.from({ length: ticks.minorsPerMajor }, (_, j) => {
-              const tickTime = time - ticks.majorInterval + step * (j + 1);
-              if (tickTime < 0 || tickTime > duration) return null;
-              const percent = (tickTime / duration) * 100;
-              return (
+            const minors: React.ReactNode[] = [];
+            for (let t = step; t < duration; t += step) {
+              // skip positions that coincide with a major tick
+              const nearMajor = Math.abs(t / ticks.majorInterval - Math.round(t / ticks.majorInterval)) < 1e-6;
+              if (nearMajor) continue;
+              const percent = (t / duration) * 100;
+              minors.push(
                 <div
-                  key={`m${i}-${j}`}
+                  key={`m${t.toFixed(4)}`}
                   className="absolute top-0 w-px h-1 bg-zinc-600"
                   style={{ left: `${percent}%` }}
-                />
+                />,
               );
-            }).filter(Boolean);
-          })}
+            }
+            return minors;
+          })()}
         </div>
 
         {/* Playhead */}
