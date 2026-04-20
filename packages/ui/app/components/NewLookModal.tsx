@@ -36,18 +36,20 @@ export function NewLookModal({ onSubmit, onCancel, initialName, existingNames = 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={onCancel}>
       <div
-        className="bg-zinc-800 border border-zinc-700 rounded-xl p-5 max-w-md w-full mx-4 shadow-2xl"
+        className="bg-zinc-800 border border-zinc-700 max-w-md w-full mx-4 shadow-2xl"
+        style={{ borderRadius: "var(--radius-md)", padding: "var(--pad-modal)" }}
         onClick={e => e.stopPropagation()}
       >
         <h3 className="text-sm font-semibold text-zinc-200 mb-4">New Look</h3>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div>
             <label className="block text-xs text-zinc-400 mb-1">Name *</label>
             <input
               type="text"
               value={name}
               onChange={e => { setName(e.target.value); setError(null); }}
-              className="w-full bg-zinc-900 border border-zinc-600 rounded px-3 py-1.5 text-xs text-zinc-200 focus:border-accent focus:outline-none"
+              className="w-full bg-zinc-900 border border-zinc-600 px-3 py-1.5 text-xs text-zinc-200 focus:border-accent focus:outline-none"
+              style={{ borderRadius: "var(--radius-sm)" }}
               autoFocus
             />
             {error && <p className="text-xs text-danger mt-1">{error}</p>}
@@ -58,7 +60,8 @@ export function NewLookModal({ onSubmit, onCancel, initialName, existingNames = 
               value={description}
               onChange={e => setDescription(e.target.value)}
               rows={2}
-              className="w-full bg-zinc-900 border border-zinc-600 rounded px-3 py-1.5 text-xs text-zinc-200 resize-none focus:border-accent focus:outline-none"
+              className="w-full bg-zinc-900 border border-zinc-600 px-3 py-1.5 text-xs text-zinc-200 resize-none focus:border-accent focus:outline-none"
+              style={{ borderRadius: "var(--radius-sm)" }}
             />
           </div>
           <div>
@@ -68,7 +71,8 @@ export function NewLookModal({ onSubmit, onCancel, initialName, existingNames = 
               value={keywords}
               onChange={e => setKeywords(e.target.value)}
               placeholder="warm, cinematic, film"
-              className="w-full bg-zinc-900 border border-zinc-600 rounded px-3 py-1.5 text-xs text-zinc-200 focus:border-accent focus:outline-none"
+              className="w-full bg-zinc-900 border border-zinc-600 px-3 py-1.5 text-xs text-zinc-200 focus:border-accent focus:outline-none"
+              style={{ borderRadius: "var(--radius-sm)" }}
             />
           </div>
           <div>
@@ -78,20 +82,23 @@ export function NewLookModal({ onSubmit, onCancel, initialName, existingNames = 
               value={characteristics}
               onChange={e => setCharacteristics(e.target.value)}
               placeholder="warm tones, low contrast, lifted blacks"
-              className="w-full bg-zinc-900 border border-zinc-600 rounded px-3 py-1.5 text-xs text-zinc-200 focus:border-accent focus:outline-none"
+              className="w-full bg-zinc-900 border border-zinc-600 px-3 py-1.5 text-xs text-zinc-200 focus:border-accent focus:outline-none"
+              style={{ borderRadius: "var(--radius-sm)" }}
             />
           </div>
           <div className="flex gap-2 justify-end mt-2">
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-1.5 text-xs text-zinc-300 bg-zinc-700 rounded-lg hover:bg-zinc-600 transition-colors"
+              className="text-xs text-zinc-300 bg-zinc-700 hover:bg-zinc-600 transition-colors"
+              style={{ borderRadius: "var(--radius-sm)", padding: "var(--pad-btn)" }}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-1.5 text-xs text-white bg-accent rounded-lg hover:bg-accent-hover transition-colors"
+              className="text-xs text-white bg-accent hover:bg-accent-hover transition-colors"
+              style={{ borderRadius: "var(--radius-sm)", padding: "var(--pad-btn-primary)" }}
             >
               Create
             </button>
