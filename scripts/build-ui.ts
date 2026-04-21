@@ -1,8 +1,10 @@
 import { join } from "node:path";
+import { cpSync, existsSync } from "node:fs";
 
 const uiDir = join(import.meta.dir, "..", "packages", "ui");
 const appDir = join(uiDir, "app");
 const distDir = join(uiDir, "dist");
+const assetsDir = join(uiDir, "assets");
 
 // Build CSS with PostCSS + Tailwind
 const cssProcess = Bun.spawn(
@@ -41,5 +43,9 @@ const injected = html
   .replace("<!-- CSS -->", '<link rel="stylesheet" href="/styles.css">')
   .replace("<!-- SCRIPT -->", `<script type="module" src="/${jsName}"></script>`);
 await Bun.write(join(distDir, "index.html"), injected);
+
+if (existsSync(assetsDir)) {
+  cpSync(assetsDir, join(distDir, "assets"), { recursive: true });
+}
 
 console.log("UI built successfully");

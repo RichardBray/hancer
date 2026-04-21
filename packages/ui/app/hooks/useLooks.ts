@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { getThumbnailGenerator } from "../lib/lookThumbnails";
 
 export interface LookMeta {
   name: string;
@@ -13,25 +14,43 @@ export function validateLookName(name: string): string | null {
   return null;
 }
 
+async function fetchLookParams(name: string): Promise<Record<string, string | number | boolean>> {
+  const res = await fetch(`/api/look?name=${encodeURIComponent(name)}`);
+  if (!res.ok) throw new Error(`Failed to load look ${name}`);
+  return res.json();
+}
+
 export function useLooks() {
   const [looks, setLooks] = useState<LookMeta[]>([]);
   const [activeLook, setActiveLook] = useState<string | null>(null);
   const [activeLookParams, setActiveLookParams] = useState<Record<string, string | number | boolean> | null>(null);
 
+  const updateThumbnail = useCallback(async (name: string) => {
+    try {
+      const [gen, params] = await Promise.all([getThumbnailGenerator(), fetchLookParams(name)]);
+      const url = await gen.generate(name, params);
+      setLooks(prev => prev.map(l => l.name === name ? { ...l, thumbnailUrl: url } : l));
+    } catch (err) {
+      console.error(`Thumbnail generation failed for ${name}:`, err);
+    }
+  }, []);
+
   const refreshLooks = useCallback(() => {
     fetch("/api/looks")
       .then(r => r.json())
       .then((names: string[]) => {
-        setLooks(names.map(name => ({
-          name,
-          thumbnailUrl: `/api/look-thumbnail?name=${encodeURIComponent(name)}&t=${Date.now()}`,
-        })));
+        setLooks(prev => {
+          const prevByName = new Map(prev.map(l => [l.name, l.thumbnailUrl]));
+          return names.map(name => ({ name, thumbnailUrl: prevByName.get(name) ?? "" }));
+        });
+        for (const name of names) {
+          void updateThumbnail(name);
+        }
       });
-  }, []);
+  }, [updateThumbnail]);
 
   const loadLook = useCallback(async (name: string): Promise<Record<string, string | number | boolean>> => {
-    const res = await fetch(`/api/look?name=${encodeURIComponent(name)}`);
-    const params = await res.json();
+    const params = await fetchLookParams(name);
     setActiveLook(name);
     setActiveLookParams({ ...params });
     return params;
@@ -44,8 +63,8 @@ export function useLooks() {
       body: JSON.stringify({ name, data }),
     });
     setActiveLookParams({ ...data });
-    refreshLooks();
-  }, [refreshLooks]);
+    void updateThumbnail(name);
+  }, [updateThumbnail]);
 
   const createLook = useCallback(async (
     name: string,
@@ -68,6 +87,8 @@ export function useLooks() {
       setActiveLook(null);
       setActiveLookParams(null);
     }
+    const gen = await getThumbnailGenerator();
+    gen.invalidate(name);
     refreshLooks();
   }, [activeLook, refreshLooks]);
 
@@ -78,6 +99,8 @@ export function useLooks() {
       body: JSON.stringify({ oldName, newName }),
     });
     if (activeLook === oldName) setActiveLook(newName);
+    const gen = await getThumbnailGenerator();
+    gen.rename(oldName, newName);
     refreshLooks();
   }, [activeLook, refreshLooks]);
 

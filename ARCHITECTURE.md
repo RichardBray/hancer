@@ -90,7 +90,6 @@ Bun HTTP server serving both API endpoints and static SPA files from `dist/`.
 - `DELETE /api/look?name=` — delete a look
 - `POST /api/look/rename` — rename a look
 - `POST /api/look/import` — import .hlook file via multipart form
-- `GET /api/look-thumbnail?name=` — FFmpeg-generated preview thumbnail (cached on disk)
 - `POST /api/export` — server-side video export via FFmpeg (SSE progress stream)
 - `GET /api/download?path=` — download exported file
 

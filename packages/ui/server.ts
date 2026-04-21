@@ -25,11 +25,6 @@ function listLooks(): string[] {
   return [...new Set(names)];
 }
 
-function invalidateThumbnailCache(name: string) {
-  const cachePath = join(tmpdir(), "hance-thumbnails", `${name}.jpg`);
-  if (existsSync(cachePath)) unlinkSync(cachePath);
-}
-
 let initialFilePath: string | null = null;
 
 export function setInitialFile(path: string | null): void {
@@ -100,7 +95,6 @@ export function createServer(port: number) {
         if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
         const lookData = { name, description: description || "", keywords: keywords || [], characteristics: characteristics || [], params: data };
         writeFileSync(join(dir, `${name}.hlook`), JSON.stringify(lookData, null, 2));
-        invalidateThumbnailCache(name);
         return Response.json({ ok: true });
       }
 
@@ -125,7 +119,6 @@ export function createServer(port: number) {
         }
         const updated = { ...existing, params: data };
         writeFileSync(filePath, JSON.stringify(updated, null, 2));
-        invalidateThumbnailCache(name);
         return Response.json({ ok: true });
       }
 
@@ -149,7 +142,6 @@ export function createServer(port: number) {
           for (const ext of [".hlook", ".json"]) {
             const oldPath = join(dir, `${oldName}${ext}`);
             if (existsSync(oldPath)) {
-              invalidateThumbnailCache(oldName);
               const newPath = join(dir, `${newName}.hlook`);
               renameSync(oldPath, newPath);
               return Response.json({ ok: true });
@@ -177,63 +169,6 @@ export function createServer(port: number) {
         const name = (parsed.name as string) || file.name.replace(".hlook", "");
         writeFileSync(join(dir, `${name}.hlook`), JSON.stringify(parsed, null, 2));
         return Response.json({ ok: true, name });
-      }
-
-      if (url.pathname === "/api/look-thumbnail" && req.method === "GET") {
-        const name = url.searchParams.get("name");
-        if (!name) return new Response("name required", { status: 400 });
-
-        // Check cache
-        const cacheDir = join(tmpdir(), "hance-thumbnails");
-        if (!existsSync(cacheDir)) mkdirSync(cacheDir, { recursive: true });
-        const cachePath = join(cacheDir, `${name}.jpg`);
-        if (existsSync(cachePath)) {
-          return new Response(Bun.file(cachePath), {
-            headers: { "Content-Type": "image/jpeg", "Cache-Control": "public, max-age=3600" },
-          });
-        }
-
-        // Load look params
-        let lookParams: Record<string, unknown>;
-        try {
-          const raw = loadPreset(name);
-          lookParams = (raw.params ?? raw) as Record<string, unknown>;
-        } catch {
-          return new Response("Look not found", { status: 404 });
-        }
-
-        // Apply look to reference image via FFmpeg
-        const referenceImage = join(import.meta.dir, "assets", "reference.jpg");
-        if (!existsSync(referenceImage)) {
-          return new Response("Reference image not found", { status: 500 });
-        }
-
-        const exposure = Number(lookParams["exposure"] ?? 0);
-        const contrast = Number(lookParams["contrast"] ?? 1);
-        const saturation = Number(lookParams["subtractive-sat"] ?? 1);
-        const fade = Number(lookParams["fade"] ?? 0);
-
-        const filters = [
-          `eq=brightness=${exposure}:contrast=${contrast}:saturation=${saturation}`,
-          fade > 0 ? `curves=master='0/0 0/${Math.round(fade * 64)} 1/1'` : null,
-          `crop='min(iw,ih)':'min(iw,ih)',scale=256:256`,
-        ].filter(Boolean).join(",");
-
-        const proc = Bun.spawn([
-          "ffmpeg", "-y", "-i", referenceImage,
-          "-vf", filters,
-          "-frames:v", "1", "-q:v", "4",
-          cachePath,
-        ], { stdout: "ignore", stderr: "ignore" });
-
-        const exitCode = await proc.exited;
-        if (exitCode !== 0 || !existsSync(cachePath)) {
-          return new Response("Thumbnail generation failed", { status: 500 });
-        }
-
-        return new Response(Bun.file(cachePath), {
-          headers: { "Content-Type": "image/jpeg", "Cache-Control": "public, max-age=3600" },
-        });
       }
 
       if (url.pathname === "/api/export" && req.method === "POST") {
