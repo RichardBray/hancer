@@ -1,0 +1,43 @@
+<h2>Pick a border-radius scale</h2>
+<p class="subtitle">Applies to buttons, modals, context menus, inputs. Current values feel too rounded.</p>
+
+<div class="options">
+  <div class="option" data-choice="sharp" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Sharp — 2px / 4px / 6px</h3>
+      <p>buttons 4px · modals 6px · menus 4px · inputs 4px</p>
+      <div style="display:flex;gap:10px;margin-top:12px;align-items:center">
+        <button style="background:#6366f1;color:#fff;border:0;padding:8px 16px;border-radius:4px;font-size:13px">Button</button>
+        <div style="background:#2a2a2a;border-radius:6px;padding:12px 16px;color:#ddd;font-size:13px">Modal corner</div>
+        <div style="background:#2a2a2a;border-radius:4px;padding:6px 12px;color:#ddd;font-size:13px">Menu</div>
+      </div>
+    </div>
+  </div>
+  <div class="option" data-choice="medium" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Medium — 6px / 8px / 6px</h3>
+      <p>buttons 6px · modals 8px · menus 6px · inputs 6px</p>
+      <div style="display:flex;gap:10px;margin-top:12px;align-items:center">
+        <button style="background:#6366f1;color:#fff;border:0;padding:8px 16px;border-radius:6px;font-size:13px">Button</button>
+        <div style="background:#2a2a2a;border-radius:8px;padding:12px 16px;color:#ddd;font-size:13px">Modal corner</div>
+        <div style="background:#2a2a2a;border-radius:6px;padding:6px 12px;color:#ddd;font-size:13px">Menu</div>
+      </div>
+    </div>
+  </div>
+  <div class="option" data-choice="soft" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Soft — 8px / 12px / 8px (close to current)</h3>
+      <p>buttons 8px · modals 12px · menus 8px · inputs 8px</p>
+      <div style="display:flex;gap:10px;margin-top:12px;align-items:center">
+        <button style="background:#6366f1;color:#fff;border:0;padding:8px 16px;border-radius:8px;font-size:13px">Button</button>
+        <div style="background:#2a2a2a;border-radius:12px;padding:12px 16px;color:#ddd;font-size:13px">Modal corner</div>
+        <div style="background:#2a2a2a;border-radius:8px;padding:6px 12px;color:#ddd;font-size:13px">Menu</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:24px">My pick: <strong>A (Sharp)</strong> — feels more pro-tool (DaVinci/FCP). The NeuralFilmAI screenshot you liked uses tight radii too.</p>

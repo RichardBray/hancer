@@ -107,7 +107,9 @@ export function LooksPanel({
               {renamingLook === look.name ? (
                 <div className="rounded-lg border-2 border-accent overflow-hidden">
                   <div className="aspect-square bg-zinc-800">
-                    <img src={look.thumbnailUrl} alt={look.name} className="w-full h-full object-cover" />
+                    {look.thumbnailUrl && (
+                      <img src={look.thumbnailUrl} alt={look.name} className="w-full h-full object-cover" />
+                    )}
                   </div>
                   <div className="px-1.5 py-1">
                     <input
