@@ -128,7 +128,7 @@ export function Canvas({ src, isVideo, params, onRendererReady, onCanvasReady, o
       )}
       <canvas
         ref={canvasRef}
-        className="max-w-full max-h-[calc(100vh-140px)] rounded-lg"
+        className="max-w-full max-h-[calc(100vh-140px)]"
       />
     </div>
   );
