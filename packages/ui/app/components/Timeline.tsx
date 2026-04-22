@@ -177,10 +177,11 @@ export function Timeline({ videoRef }: Props) {
         className="relative flex-1 cursor-pointer overflow-hidden"
         onMouseDown={onMouseDown}
       >
-        <div className="absolute top-6 inset-x-0 h-2 bg-zinc-800 rounded-sm" />
+        {/* Clip bar */}
+        <div className="absolute left-6 right-6 top-7 h-12 bg-gradient-to-b from-amber-500/90 to-amber-600/90 shadow-inner overflow-hidden" />
 
         {/* Ruler strip */}
-        <div className="absolute top-0 inset-x-0 h-4 pointer-events-none">
+        <div className="absolute top-0 inset-x-0 h-5 pointer-events-none">
           {ticks.majors.map((time, i) => {
             const percent = (time / duration) * 100;
             return (
