@@ -178,7 +178,7 @@ export function Timeline({ videoRef }: Props) {
         onMouseDown={onMouseDown}
       >
         {/* Clip bar */}
-        <div className="absolute left-6 right-6 top-7 h-12 bg-gradient-to-b from-amber-500/90 to-amber-600/90 shadow-inner overflow-hidden" />
+        <div className="absolute left-0 right-0 top-12 h-10 rounded bg-gradient-to-b from-cyan-500/90 to-cyan-600/90 shadow-inner overflow-hidden" />
 
         {/* Ruler strip */}
         <div className="absolute top-0 inset-x-0 h-5 pointer-events-none">
