@@ -19,7 +19,7 @@ interface Props {
   onDeleteLook: (name: string) => void;
   onRenameLook: (oldName: string, newName: string) => void;
   onImportLook: (file: File) => void;
-  onGetLookInfo: (name: string) => Promise<{ name: string; description?: string; keywords?: string[]; characteristics?: string[] }>;
+  onGetLookInfo: (name: string) => Promise<{ name: string; description?: string; keywords?: string[]; characteristics?: string[]; params?: Record<string, string | number | boolean> }>;
 }
 
 export function LooksPanel({
@@ -31,7 +31,7 @@ export function LooksPanel({
   const [deletingLook, setDeletingLook] = useState<string | null>(null);
   const [renamingLook, setRenamingLook] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
-  const [lookInfo, setLookInfo] = useState<{ name: string; description?: string; keywords?: string[]; characteristics?: string[] } | null>(null);
+  const [lookInfo, setLookInfo] = useState<{ name: string; description?: string; keywords?: string[]; characteristics?: string[]; params?: Record<string, string | number | boolean> } | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
 
   function handleContextMenu(e: React.MouseEvent, name: string) {
