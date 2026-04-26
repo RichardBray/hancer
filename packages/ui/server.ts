@@ -64,11 +64,13 @@ export function createServer(port: number) {
         const name = url.searchParams.get("name") || "default";
         try {
           const raw = loadPreset(name);
+          const params = raw.params ?? raw;
           return Response.json({
             name: raw.name ?? name,
             description: raw.description ?? "",
             keywords: raw.keywords ?? [],
             characteristics: raw.characteristics ?? [],
+            params,
           });
         } catch {
           return new Response("Look not found", { status: 404 });
