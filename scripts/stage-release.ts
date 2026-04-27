@@ -1,5 +1,5 @@
 import { mkdir, copyFile, rm } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { existsSync, cpSync } from "node:fs";
 import path from "node:path";
 
 export function detectPlatform(platform: string, arch: string): string {
@@ -46,10 +46,7 @@ async function main() {
   // Bundle UI dist
   const uiDistDir = path.join(root, "packages", "ui", "dist");
   const stageUiDir = path.join(stageDir, "ui");
-  await mkdir(stageUiDir, { recursive: true });
-  for (const f of readdirSync(uiDistDir)) {
-    await copyFile(path.join(uiDistDir, f), path.join(stageUiDir, f));
-  }
+  cpSync(uiDistDir, stageUiDir, { recursive: true });
 
   const { chmodSync } = await import("node:fs");
   chmodSync(path.join(stageDir, "hance"), 0o755);
