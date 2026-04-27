@@ -2,7 +2,7 @@ import { existsSync, mkdirSync } from "node:fs";
 import { probe, applyPreset, resolveExportPreset } from "@hance/core";
 import type { PresetData, FilmOptions } from "@hance/core";
 import { runGpuExport } from "./pipeline";
-import { parseEffectFlags } from "./effect-flags";
+import { parseEffectFlags, EFFECT_HELP_TEXT } from "./effect-flags";
 import path from "node:path";
 
 declare const HANCE_VERSION: string | undefined;
@@ -23,60 +23,7 @@ hance <input> [<input> ...] [options]
   Preset:
   --preset     <name>       Load a preset file (default: "default")
 
-  Color Settings:
-  --exposure          <-2 to 2>     Exposure adjustment (default: 0)
-  --contrast          <0-3>         Contrast multiplier (default: 1)
-  --highlights        <-1 to 1>     Highlight compression (default: 0)
-  --fade              <0-1>         Fade / lift blacks (default: 0)
-  --white-balance     <1000-15000>  Color temperature in Kelvin (default: 6500)
-  --tint              <-100 to 100> Green-magenta tint (default: 0)
-  --subtractive-sat   <0-3>         Subtractive saturation (default: 1)
-  --richness          <0-3>         Color richness (default: 1)
-  --bleach-bypass     <0-1>         Bleach bypass amount (default: 0)
-  --no-color-settings               Disable color settings
-
-  Halation:
-  --halation-amount         <0-1>   Halation strength (default: 0.25)
-  --halation-radius         <1-100> Blur radius (default: 4)
-  --halation-saturation     <0-3>   Glow saturation (default: 1)
-  --halation-hue            <0-1>   Hue rotation 0-1 (default: 0.5)
-  --halation-highlights-only        Restrict to highlights (default: true)
-  --no-halation                     Disable halation
-
-  Chromatic Aberration:
-  --aberration  <0-1>       Aberration amount (default: 0.3)
-  --no-aberration           Disable aberration
-
-  Bloom:
-  --bloom-amount   <0-1>    Bloom strength (default: 0.25)
-  --bloom-radius   <1-100>  Bloom blur radius (default: 10)
-  --no-bloom                Disable bloom
-
-  Grain:
-  --grain-amount     <0-1>    Grain intensity (default: 0.125)
-  --grain-size       <0-5>    Grain particle size (default: 0)
-  --grain-softness   <0-1>    Grain softness (default: 0.1)
-  --grain-saturation <0-1>    Grain color saturation (default: 0.3)
-  --grain-defocus    <0-5>    Image defocus amount (default: 1)
-  --no-grain                  Disable grain
-
-  Vignette:
-  --vignette-amount  <0-1>   Vignette strength (default: 0.25)
-  --vignette-size    <0-1>   Vignette size (default: 0.25)
-  --no-vignette              Disable vignette
-
-  Split Tone:
-  --split-tone-mode      <natural|complementary>  (default: natural)
-  --split-tone-protect-neutrals                   Protect neutral colors
-  --split-tone-amount    <0-1>    Toning amount (default: 0)
-  --split-tone-hue       <0-360>  Hue angle in degrees (default: 20)
-  --split-tone-pivot     <0-1>    Shadow/highlight pivot (default: 0.3)
-  --no-split-tone                 Disable split tone
-
-  Camera Shake:
-  --camera-shake-amount  <0-1>   Shake intensity (default: 0.25)
-  --camera-shake-rate    <0-2>   Shake speed (default: 0.5)
-  --no-camera-shake              Disable camera shake
+${EFFECT_HELP_TEXT}
 
   General:
   --help, -h                Show this help
@@ -282,37 +229,8 @@ async function main() {
 
       if (probeResult.isImage) {
         process.stdout.write(`${prefix}Processing...\n`);
-        const { createHeadlessRenderer } = await import("./gpu/wgpu-renderer");
-        const renderer = await createHeadlessRenderer();
-        try {
-          await renderer.init(probeResult.width!, probeResult.height!, parsed.params);
-          const decodeProc = Bun.spawn([
-            "ffmpeg", "-i", input,
-            "-f", "rawvideo", "-pix_fmt", "rgba",
-            "-v", "quiet",
-            "pipe:1",
-          ], { stdout: "pipe", stderr: "pipe" });
-          const rawBytes = new Uint8Array(await new Response(decodeProc.stdout).arrayBuffer());
-          await decodeProc.exited;
-          const rendered = await renderer.renderFrame(rawBytes, probeResult.width!, probeResult.height!, parsed.params);
-          const encodeProc = Bun.spawn([
-            "ffmpeg", "-y",
-            "-f", "rawvideo", "-pix_fmt", "rgba",
-            "-s", `${probeResult.width}x${probeResult.height}`,
-            "-i", "pipe:0",
-            "-v", "quiet",
-            output,
-          ], { stdin: "pipe", stdout: "pipe", stderr: "pipe" });
-          encodeProc.stdin.write(rendered);
-          encodeProc.stdin.end();
-          const encodeExit = await encodeProc.exited;
-          if (encodeExit !== 0) {
-            const stderr = await new Response(encodeProc.stderr).text();
-            throw new Error(`FFmpeg encode failed: ${stderr.trim()}`);
-          }
-        } finally {
-          await renderer.close();
-        }
+        const { renderImage } = await import("./gpu/image-pipeline");
+        await renderImage(input, output, probeResult.width!, probeResult.height!, parsed.params);
         console.log(`${prefix}Done.`);
       } else {
         await runGpuExport(input, output, parsed.params, probeResult, (ratio) => {

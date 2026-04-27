@@ -75,7 +75,6 @@ const KNOWN_FLAGS = new Set([
 ]);
 
 const BOOLEAN_FLAGS = new Set([
-  "--help", "-h",
   "--no-color-settings", "--no-halation", "--no-aberration", "--no-bloom",
   "--no-grain", "--no-vignette", "--no-split-tone", "--no-camera-shake",
   "--halation-highlights-only", "--split-tone-protect-neutrals",

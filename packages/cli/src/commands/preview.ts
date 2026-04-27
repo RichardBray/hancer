@@ -4,6 +4,7 @@ import { probe, applyPreset } from "@hance/core";
 import type { PresetData } from "@hance/core";
 import { parseEffectFlags, EFFECT_HELP_TEXT } from "../effect-flags";
 import { createHeadlessRenderer } from "../gpu/wgpu-renderer";
+import { encodeRgbaToFile, renderImage } from "../gpu/image-pipeline";
 
 const PREVIEW_HELP = `\
 hance preview <input> -o <out.png> [effect flags...]
@@ -36,36 +37,6 @@ export function parsePreviewArgs(argv: string[]): PreviewArgs {
   };
 }
 
-async function decodeImageRgba(input: string, width: number, height: number): Promise<Uint8Array> {
-  const proc = Bun.spawn([
-    "ffmpeg", "-i", input,
-    "-f", "rawvideo", "-pix_fmt", "rgba",
-    "-v", "quiet", "pipe:1",
-  ], { stdout: "pipe", stderr: "pipe" });
-  const bytes = new Uint8Array(await new Response(proc.stdout).arrayBuffer());
-  const code = await proc.exited;
-  if (code !== 0) throw new Error(`ffmpeg decode failed for ${input}`);
-  const expected = width * height * 4;
-  if (bytes.length !== expected) throw new Error(`decoded ${bytes.length} bytes, expected ${expected}`);
-  return bytes;
-}
-
-async function encodePng(rgba: Uint8Array, width: number, height: number, output: string): Promise<void> {
-  const proc = Bun.spawn([
-    "ffmpeg", "-y",
-    "-f", "rawvideo", "-pix_fmt", "rgba",
-    "-s", `${width}x${height}`,
-    "-i", "pipe:0",
-    "-v", "quiet", output,
-  ], { stdin: "pipe", stdout: "pipe", stderr: "pipe" });
-  proc.stdin.write(rgba); proc.stdin.end();
-  const code = await proc.exited;
-  if (code !== 0) {
-    const err = await new Response(proc.stderr).text();
-    throw new Error(`ffmpeg encode failed: ${err.trim()}`);
-  }
-}
-
 export async function runPreview(argv: string[]): Promise<void> {
   let parsed: PreviewArgs;
   try { parsed = parsePreviewArgs(argv); }
@@ -81,13 +52,7 @@ export async function runPreview(argv: string[]): Promise<void> {
 
   if (probeResult.isImage) {
     const w = probeResult.width!, h = probeResult.height!;
-    const rgba = await decodeImageRgba(parsed.input, w, h);
-    const renderer = await createHeadlessRenderer();
-    try {
-      await renderer.init(w, h, params);
-      const out = await renderer.renderFrame(rgba, w, h, params);
-      await encodePng(out, w, h, parsed.output);
-    } finally { await renderer.close(); }
+    await renderImage(parsed.input, parsed.output, w, h, params);
     process.stdout.write(path.resolve(parsed.output) + "\n");
     return;
   }
@@ -132,6 +97,6 @@ export async function runPreview(argv: string[]): Promise<void> {
     }
   } finally { await renderer.close(); }
 
-  await encodePng(stitched, w * 3, h, parsed.output);
+  await encodeRgbaToFile(stitched, w * 3, h, parsed.output);
   process.stdout.write(path.resolve(parsed.output) + "\n");
 }

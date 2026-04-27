@@ -33,4 +33,25 @@ describe("parseEffectFlags", () => {
     const r = parseEffectFlags(["input.mp4", "--exposure", "0.2"]);
     expect(r.positional).toEqual(["input.mp4"]);
   });
+
+  it("parses export-shape flags", () => {
+    const r = parseEffectFlags([
+      "--export", "high",
+      "--codec", "prores",
+      "--crf", "18",
+      "--encode-preset", "slow",
+      "--blend", "0.5",
+    ]);
+    expect(r.exportPreset).toBe("high");
+    expect(r.overrideCodec).toBe("prores");
+    expect(r.overrideCrf).toBe(18);
+    expect(r.overrideEncodePreset).toBe("slow");
+    expect(r.overrides["blend"]).toBe(0.5);
+  });
+
+  it("rejects invalid --codec / --export / --encode-preset values", () => {
+    expect(() => parseEffectFlags(["--codec", "av1"])).toThrow(/--codec/);
+    expect(() => parseEffectFlags(["--export", "ultra"])).toThrow(/--export/);
+    expect(() => parseEffectFlags(["--encode-preset", "turbo"])).toThrow(/--encode-preset/);
+  });
 });
