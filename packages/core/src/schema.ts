@@ -56,8 +56,8 @@ export const EFFECT_SCHEMA: EffectGroup[] = [
     options: [
       { key: "halation-amount", label: "Amount", type: "range", min: 0, max: 1, step: 0.01, default: 0.25 },
       { key: "halation-radius", label: "Radius", type: "range", min: 1, max: 100, step: 1, default: 4 },
-      { key: "halation-saturation", label: "Saturation", type: "range", min: 0, max: 3, step: 0.01, default: 1 },
-      { key: "halation-hue", label: "Hue", type: "range", min: 0, max: 1, step: 0.01, default: 0.5 },
+      { key: "halation-saturation", label: "Tint Strength", type: "range", min: 0, max: 1, step: 0.01, default: 1 },
+      { key: "halation-hue", label: "Hue", type: "range", min: 0, max: 1, step: 0.01, default: 0.04 },
       { key: "halation-highlights-only", label: "Highlights Only", type: "boolean", default: true },
     ],
   },

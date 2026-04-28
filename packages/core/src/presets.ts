@@ -87,7 +87,7 @@ export function applyPreset(
     amount: Number(merged["halation-amount"] ?? 0.25),
     radius: Number(merged["halation-radius"] ?? 4),
     saturation: Number(merged["halation-saturation"] ?? 1),
-    hue: Number(merged["halation-hue"] ?? 0.5),
+    hue: Number(merged["halation-hue"] ?? 0.04),
     highlightsOnly: Boolean(merged["halation-highlights-only"] ?? true),
   };
 
