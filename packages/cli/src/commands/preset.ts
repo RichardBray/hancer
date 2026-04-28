@@ -41,7 +41,8 @@ function listDir(dir: string): string[] {
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
     .filter((f) => f.endsWith(".hlook") || f.endsWith(".json"))
-    .map((f) => f.replace(/\.(hlook|json)$/, ""));
+    .map((f) => f.replace(/\.(hlook|json)$/, ""))
+    .filter((n) => n !== "default");
 }
 
 async function runSave(argv: string[]): Promise<void> {

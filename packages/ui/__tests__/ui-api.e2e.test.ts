@@ -20,9 +20,9 @@ describe("UI API e2e", () => {
     const res = await fetch(`${base}/api/looks`);
     expect(res.status).toBe(200);
     const data = await res.json();
-    expect(data).toContain("default");
-    expect(data).toContain("subtle");
-    expect(data).toContain("heavy");
+    expect(data).not.toContain("default");
+    expect(data).toContain("portra-400");
+    expect(data).toContain("cinestill-800t");
   });
 
   test("GET /api/look?name=default returns look data", async () => {

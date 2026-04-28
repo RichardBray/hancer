@@ -24,7 +24,8 @@ function listLooks(): string[] {
     if (existsSync(dir)) {
       for (const f of readdirSync(dir)) {
         if (f.endsWith(".hlook") || f.endsWith(".json")) {
-          names.push(f.replace(/\.(hlook|json)$/, ""));
+          const name = f.replace(/\.(hlook|json)$/, "");
+          if (name !== "default") names.push(name);
         }
       }
     }

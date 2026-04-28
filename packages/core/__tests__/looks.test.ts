@@ -15,9 +15,9 @@ describe("look file loading", () => {
     expect(typeof data).toBe("object");
   });
 
-  test("loadPreset loads heavy look with .hlook metadata wrapper", () => {
-    const data = loadPreset("heavy");
-    expect(data.name).toBe("Heavy");
+  test("loadPreset loads cinestill-800t look with .hlook metadata wrapper", () => {
+    const data = loadPreset("cinestill-800t");
+    expect(data.name).toBe("CineStill 800T");
     const params = data.params as Record<string, unknown>;
     expect(params.exposure).toBe(0.1);
   });

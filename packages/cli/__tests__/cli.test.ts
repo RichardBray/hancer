@@ -79,12 +79,12 @@ describe("parseArgs", () => {
   });
 
   it("parses --preset to load a named preset", () => {
-    const result = parseArgs(["input.mp4", "--preset", "subtle"]);
-    expect(result.halation.amount).toBe(0.1);
+    const result = parseArgs(["input.mp4", "--preset", "portra-400"]);
+    expect(result.halation.amount).toBe(0.2);
   });
 
   it("CLI flags override preset values", () => {
-    const result = parseArgs(["input.mp4", "--preset", "subtle", "--aberration", "0.8"]);
+    const result = parseArgs(["input.mp4", "--preset", "portra-400", "--aberration", "0.8"]);
     expect(result.aberration.amount).toBe(0.8);
   });
 

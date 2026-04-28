@@ -12,10 +12,10 @@ describe("loadPreset", () => {
   });
 
   it("loads a named built-in preset (.hlook format)", () => {
-    const data = loadPreset("subtle");
+    const data = loadPreset("portra-400");
     expect(data).toBeDefined();
     const params = data.params as Record<string, unknown>;
-    expect(params["halation-amount"]).toBe(0.1);
+    expect(params["halation-amount"]).toBe(0.2);
   });
 
   it("throws for unknown preset", () => {
@@ -48,10 +48,10 @@ describe("applyPreset", () => {
   });
 
   it("merges named preset over default then applies overrides", () => {
-    const opts = applyPreset("subtle", { "aberration": 0.5 });
-    expect(opts.halation.amount).toBe(0.1); // from subtle
+    const opts = applyPreset("portra-400", { "aberration": 0.5 });
+    expect(opts.halation.amount).toBe(0.2); // from portra-400
     expect(opts.aberration.amount).toBe(0.5); // from CLI override
-    expect(opts.vignette.amount).toBe(0.1); // from subtle
+    expect(opts.vignette.amount).toBe(0.15); // from portra-400
   });
 
   it("handles boolean disable overrides", () => {
