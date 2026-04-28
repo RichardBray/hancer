@@ -20,4 +20,6 @@ packages/ui/dist/
 
 # Superpowers ephemeral tool output
 .superpowers/
+
+# Fallow ephemeral output
 .fallow/
