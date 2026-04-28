@@ -4,9 +4,9 @@
 
 struct BlendParams {
   opacity: f32,
-  hueShift: f32,
-  saturation: f32,
-  _pad: f32,
+  hue: f32,
+  tint: f32,
+  ambient: f32,
 };
 @group(0) @binding(3) var<uniform> params: BlendParams;
 
@@ -48,12 +48,16 @@ fn hsv2rgb(c: vec3f) -> vec3f {
 fn fs(@location(0) uv: vec2f) -> @location(0) vec4f {
   let base = textureSample(base_tex, samp, uv).rgb;
   var overlay = textureSample(overlay_tex, samp, uv).rgb;
-  if (params.hueShift != 0.0 || params.saturation != 1.0) {
-    var hsv = rgb2hsv(overlay);
-    hsv.x = fract(hsv.x + params.hueShift / 360.0);
-    hsv.y = clamp(hsv.y * params.saturation, 0.0, 1.0);
-    overlay = hsv2rgb(hsv);
+  let tintHue = hsv2rgb(vec3f(fract(params.hue / 360.0), 1.0, 1.0));
+  if (params.tint > 0.0) {
+    let tintColor = mix(vec3f(1.0), tintHue, clamp(params.tint, 0.0, 1.0));
+    overlay = overlay * tintColor;
   }
   let blended = 1.0 - (1.0 - base) * (1.0 - overlay);
-  return vec4f(mix(base, blended, params.opacity), 1.0);
+  var result = mix(base, blended, params.opacity);
+  if (params.ambient > 0.0) {
+    let warm = result * mix(vec3f(1.0), tintHue, clamp(params.ambient, 0.0, 1.0));
+    result = warm;
+  }
+  return vec4f(result, 1.0);
 }

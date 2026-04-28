@@ -16,8 +16,8 @@ export const EFFECT_HELP_TEXT = `\
   Halation:
   --halation-amount         <0-1>   Halation strength (default: 0.25)
   --halation-radius         <1-100> Blur radius (default: 4)
-  --halation-saturation     <0-3>   Glow saturation (default: 1)
-  --halation-hue            <0-1>   Hue rotation 0-1 (default: 0.5)
+  --halation-saturation     <0-1>   Tint strength (default: 1)
+  --halation-hue            <0-1>   Tint hue 0-1 (default: 0.04, ~red-orange)
   --halation-highlights-only        Restrict to highlights (default: true)
   --no-halation                     Disable halation
 
@@ -162,7 +162,7 @@ export function parseEffectFlags(argv: string[]): ParsedEffectFlags {
       case "--bleach-bypass": overrides["bleach-bypass"] = parseNum(val, "--bleach-bypass", 0, 1); break;
       case "--halation-amount": overrides["halation-amount"] = parseNum(val, "--halation-amount", 0, 1); break;
       case "--halation-radius": overrides["halation-radius"] = parseNum(val, "--halation-radius", 1, 100); break;
-      case "--halation-saturation": overrides["halation-saturation"] = parseNum(val, "--halation-saturation", 0, 3); break;
+      case "--halation-saturation": overrides["halation-saturation"] = parseNum(val, "--halation-saturation", 0, 1); break;
       case "--halation-hue": overrides["halation-hue"] = parseNum(val, "--halation-hue", 0, 1); break;
       case "--aberration": overrides["aberration"] = parseNum(val, "--aberration", 0, 1); break;
       case "--bloom-amount": overrides["bloom-amount"] = parseNum(val, "--bloom-amount", 0, 1); break;
