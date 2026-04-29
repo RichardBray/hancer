@@ -4,7 +4,7 @@ import { probe, applyPreset } from "@hance/core";
 import type { PresetData } from "@hance/core";
 import { parseEffectFlags, EFFECT_HELP_TEXT } from "../effect-flags";
 import { createHeadlessRenderer } from "../gpu/wgpu-renderer";
-import { encodeRgbaToFile, renderImage } from "../gpu/image-pipeline";
+import { encodeRgbaToFile, renderImage, decodeRgbaFrame } from "../gpu/image-pipeline";
 
 const PREVIEW_HELP = `\
 hance preview <input> -o <out.png> [effect flags...]
@@ -63,20 +63,7 @@ export async function runPreview(argv: string[]): Promise<void> {
   if (!duration || duration <= 0) throw new Error(`preview: could not determine duration for ${parsed.input}`);
   const stops = [0.25, 0.5, 0.75].map((p) => p * duration);
 
-  async function decodeFrameAt(t: number): Promise<Uint8Array> {
-    const proc = Bun.spawn([
-      "ffmpeg", "-ss", t.toFixed(3), "-i", parsed.input,
-      "-frames:v", "1",
-      "-f", "rawvideo", "-pix_fmt", "rgba",
-      "-v", "quiet", "pipe:1",
-    ], { stdout: "pipe", stderr: "pipe" });
-    const bytes = new Uint8Array(await new Response(proc.stdout).arrayBuffer());
-    const code = await proc.exited;
-    if (code !== 0) throw new Error(`ffmpeg seek/decode failed at t=${t}`);
-    const expected = w * h * 4;
-    if (bytes.length !== expected) throw new Error(`frame at ${t}: ${bytes.length} bytes, expected ${expected}`);
-    return bytes;
-  }
+  const decodeFrameAt = (t: number) => decodeRgbaFrame(parsed.input, w, h, t);
 
   const renderer = await createHeadlessRenderer();
   let stitched: Uint8Array;

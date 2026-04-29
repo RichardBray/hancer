@@ -11,6 +11,13 @@ function safeExt(name: string): string {
   return /^\.[a-z0-9]{1,8}$/.test(ext) ? ext : "";
 }
 
+function preparePresetWrite(name: unknown, data: unknown): { ok: true; path: string } | { ok: false; res: Response } {
+  if (!name || !data) return { ok: false, res: new Response("name and data required", { status: 400 }) };
+  const dir = userPresetsDir();
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  return { ok: true, path: join(dir, `${name}.hlook`) };
+}
+
 function listLooks(): string[] {
   const names: string[] = [];
   for (const dir of [builtinPresetsDir(), userPresetsDir()]) {
@@ -92,21 +99,19 @@ export function createServer(port: number) {
       if (url.pathname === "/api/looks" && req.method === "POST") {
         const body = await req.json();
         const { name, data, description, keywords, characteristics } = body;
-        if (!name || !data) return new Response("name and data required", { status: 400 });
-        const dir = userPresetsDir();
-        if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+        const prep = preparePresetWrite(name, data);
+        if (!prep.ok) return prep.res;
         const lookData = { name, description: description || "", keywords: keywords || [], characteristics: characteristics || [], params: data };
-        writeFileSync(join(dir, `${name}.hlook`), JSON.stringify(lookData, null, 2));
+        writeFileSync(prep.path, JSON.stringify(lookData, null, 2));
         return Response.json({ ok: true });
       }
 
       if (url.pathname === "/api/look" && req.method === "PUT") {
         const body = await req.json();
         const { name, data } = body;
-        if (!name || !data) return new Response("name and data required", { status: 400 });
-        const dir = userPresetsDir();
-        if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-        const filePath = join(dir, `${name}.hlook`);
+        const prep = preparePresetWrite(name, data);
+        if (!prep.ok) return prep.res;
+        const filePath = prep.path;
         let existing: Record<string, unknown> = {};
         try {
           existing = JSON.parse(await Bun.file(filePath).text());

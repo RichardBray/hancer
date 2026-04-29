@@ -1,18 +1,30 @@
 import { createHeadlessRenderer } from "./wgpu-renderer";
 
-export async function decodeImageRgba(input: string, width: number, height: number): Promise<Uint8Array> {
+export async function decodeRgbaFrame(
+  input: string,
+  width: number,
+  height: number,
+  seekSeconds?: number,
+): Promise<Uint8Array> {
+  const seekArgs = seekSeconds !== undefined ? ["-ss", seekSeconds.toFixed(3)] : [];
+  const frameArgs = seekSeconds !== undefined ? ["-frames:v", "1"] : [];
   const proc = Bun.spawn([
-    "ffmpeg", "-i", input,
+    "ffmpeg", ...seekArgs, "-i", input,
+    ...frameArgs,
     "-f", "rawvideo", "-pix_fmt", "rgba",
     "-v", "quiet", "pipe:1",
   ], { stdout: "pipe", stderr: "pipe" });
   const bytes = new Uint8Array(await new Response(proc.stdout).arrayBuffer());
   const code = await proc.exited;
-  if (code !== 0) throw new Error(`ffmpeg decode failed for ${input}`);
+  if (code !== 0) {
+    const where = seekSeconds !== undefined ? ` at t=${seekSeconds}` : "";
+    throw new Error(`ffmpeg decode failed for ${input}${where}`);
+  }
   const expected = width * height * 4;
   if (bytes.length !== expected) throw new Error(`decoded ${bytes.length} bytes, expected ${expected}`);
   return bytes;
 }
+
 
 export async function encodeRgbaToFile(rgba: Uint8Array, width: number, height: number, output: string): Promise<void> {
   const proc = Bun.spawn([
@@ -37,7 +49,7 @@ export async function renderImage(
   height: number,
   params: Record<string, unknown>,
 ): Promise<void> {
-  const rgba = await decodeImageRgba(input, width, height);
+  const rgba = await decodeRgbaFrame(input, width, height);
   const renderer = await createHeadlessRenderer();
   try {
     await renderer.init(width, height, params);

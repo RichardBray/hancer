@@ -4,28 +4,14 @@ import { homedir } from "os";
 import type {
   ColorSettingsOptions, HalationOptions, AberrationOptions,
   BloomOptions, GrainOptions, VignetteOptions, SplitToneOptions, CameraShakeOptions,
-  OutputCodec, PixelFormat,
+  FilmOptions, OutputCodec,
 } from "./types";
 
 export interface PresetData {
   [key: string]: string | number | boolean | undefined;
 }
 
-interface EffectOptions {
-  encodePreset: "fast" | "medium" | "slow";
-  codec: OutputCodec;
-  crf: number;
-  blend: number;
-  pixelFormat: PixelFormat;
-  colorSettings: ColorSettingsOptions;
-  halation: HalationOptions;
-  aberration: AberrationOptions;
-  bloom: BloomOptions;
-  grain: GrainOptions;
-  vignette: VignetteOptions;
-  splitTone: SplitToneOptions;
-  cameraShake: CameraShakeOptions;
-}
+type EffectOptions = Omit<FilmOptions, "input" | "output">;
 
 export function builtinPresetsDir(): string {
   const repoDir = join(import.meta.dir, "..", "..", "..", "presets");
