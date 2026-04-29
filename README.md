@@ -88,6 +88,8 @@ hance ui
 
 Hance ships with a handful of built-in presets (see `presets/*.hlook`). Pass `--preset <name>` to start from one; any additional flags override its values.
 
+`.hlook` files are JSON. The `hance_version` field records the version of Hance that wrote the file; it's informational, used for debugging and forward compatibility. Unknown effect parameters are ignored on load, so presets authored on newer versions still load on older binaries (the unknown effects simply don't apply).
+
 ### Common options
 
 | Flag | Range / values | Default | Description |

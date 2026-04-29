@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "hance_version": "0.3.1",
   "name": "Ilford HP5",
   "description": "Ilford HP5 Plus 400 — classic black & white film with pronounced grain and gritty contrast",
   "keywords": ["hp5", "ilford", "black and white", "monochrome", "grain"],
@@ -29,7 +29,6 @@
     "grain-defocus": 1,
     "vignette-amount": 0.28,
     "vignette-size": 0.3,
-    "split-tone-amount": 0,
     "camera-shake-amount": 0.15,
     "camera-shake-rate": 0.5
   }

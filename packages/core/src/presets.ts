@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "fs";
+import { existsSync, readFileSync, readdirSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
 import type {
@@ -21,6 +21,20 @@ export function builtinPresetsDir(): string {
 
 export function userPresetsDir(): string {
   return join(homedir(), ".hance", "presets");
+}
+
+export function listPresetNames(): string[] {
+  const names = new Set<string>();
+  for (const dir of [userPresetsDir(), builtinPresetsDir()]) {
+    if (!existsSync(dir)) continue;
+    for (const f of readdirSync(dir)) {
+      if (!f.endsWith(".hlook") && !f.endsWith(".json")) continue;
+      const name = f.replace(/\.(hlook|json)$/, "");
+      if (name === "default") continue;
+      names.add(name);
+    }
+  }
+  return [...names].sort();
 }
 
 export function loadPreset(name: string): PresetData {

@@ -12,6 +12,6 @@ export type { RangeOption, SelectOption, BooleanOption, OptionDef, EffectGroup }
 export { EFFECT_SCHEMA, getDefaults } from "./schema";
 
 export type { PresetData } from "./presets";
-export { loadPreset, applyPreset, builtinPresetsDir, userPresetsDir } from "./presets";
+export { loadPreset, applyPreset, builtinPresetsDir, userPresetsDir, listPresetNames } from "./presets";
 
 export { probe, parseProbeOutput } from "./probe";

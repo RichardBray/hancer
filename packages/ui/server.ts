@@ -1,4 +1,4 @@
-import { EFFECT_SCHEMA, loadPreset, builtinPresetsDir, userPresetsDir, probe } from "@hance/core";
+import { EFFECT_SCHEMA, loadPreset, builtinPresetsDir, userPresetsDir, listPresetNames, probe } from "@hance/core";
 import type { PresetData } from "@hance/core";
 import { runGpuExport } from "@hance/cli/src/pipeline";
 import { join, extname, basename } from "node:path";
@@ -19,18 +19,7 @@ function preparePresetWrite(name: unknown, data: unknown): { ok: true; path: str
 }
 
 function listLooks(): string[] {
-  const names: string[] = [];
-  for (const dir of [builtinPresetsDir(), userPresetsDir()]) {
-    if (existsSync(dir)) {
-      for (const f of readdirSync(dir)) {
-        if (f.endsWith(".hlook") || f.endsWith(".json")) {
-          const name = f.replace(/\.(hlook|json)$/, "");
-          if (name !== "default") names.push(name);
-        }
-      }
-    }
-  }
-  return [...new Set(names)];
+  return listPresetNames();
 }
 
 let initialFilePath: string | null = null;

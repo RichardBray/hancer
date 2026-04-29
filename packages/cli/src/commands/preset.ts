@@ -1,8 +1,11 @@
-import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { builtinPresetsDir, userPresetsDir } from "@hance/core";
+import { userPresetsDir, listPresetNames } from "@hance/core";
 import type { PresetData } from "@hance/core";
 import { parseEffectFlags, EFFECT_HELP_TEXT } from "../effect-flags";
+
+declare const HANCE_VERSION: string | undefined;
+const VERSION: string = (typeof HANCE_VERSION !== "undefined" ? HANCE_VERSION : (process.env.HANCE_VERSION ?? "dev"));
 
 const PRESET_HELP = `\
 hance preset save <name> [effect flags...] [--force]
@@ -37,14 +40,6 @@ export function parsePresetSaveArgs(argv: string[]): PresetSaveArgs {
   return { name: r.positional[0], overrides: r.overrides, force, help: false };
 }
 
-function listDir(dir: string): string[] {
-  if (!existsSync(dir)) return [];
-  return readdirSync(dir)
-    .filter((f) => f.endsWith(".hlook") || f.endsWith(".json"))
-    .map((f) => f.replace(/\.(hlook|json)$/, ""))
-    .filter((n) => n !== "default");
-}
-
 async function runSave(argv: string[]): Promise<void> {
   let parsed: PresetSaveArgs;
   try { parsed = parsePresetSaveArgs(argv); }
@@ -62,15 +57,12 @@ async function runSave(argv: string[]): Promise<void> {
     process.exit(1);
   }
 
-  writeFileSync(file, JSON.stringify({ name: parsed.name, params: parsed.overrides }, null, 2));
+  writeFileSync(file, JSON.stringify({ hance_version: VERSION, name: parsed.name, params: parsed.overrides }, null, 2));
   process.stdout.write(path.resolve(file) + "\n");
 }
 
 function runList(): void {
-  const names = new Set<string>();
-  for (const n of listDir(userPresetsDir())) names.add(n);
-  for (const n of listDir(builtinPresetsDir())) names.add(n);
-  const sorted = [...names].sort();
+  const sorted = listPresetNames();
   if (sorted.length > 0) process.stdout.write(sorted.join("\n") + "\n");
 }
 

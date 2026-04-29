@@ -22,7 +22,9 @@ describe("API server", () => {
     const res = await fetch(`${base}/api/looks`);
     expect(res.status).toBe(200);
     const data = await res.json();
-    expect(data).toContain("default");
+    expect(data).not.toContain("default");
+    expect(Array.isArray(data)).toBe(true);
+    expect(data.length).toBeGreaterThan(0);
   });
 
   test("GET /api/look?name=default returns look data", async () => {
