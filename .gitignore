@@ -23,3 +23,6 @@ packages/ui/dist/
 
 # Fallow ephemeral output
 .fallow/
+
+# Local Claude Code config
+.claude/
