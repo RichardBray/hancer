@@ -104,6 +104,41 @@ Bun HTTP server serving both API endpoints and static SPA files from `dist/`.
 - Frame extraction, look matching, and export are all CLI operations
 - The web UI previews via WebGPU but exports via the server's FFmpeg pipeline
 
+### Video Render Pipeline (`packages/cli/src/pipeline.ts`)
+
+`runGpuExport` builds a single shell pipeline:
+
+```
+ffmpeg -i <input> -f rawvideo -pix_fmt rgba pipe:1
+  | hance-wgpu '<init-json>'
+  | ffmpeg -f rawvideo -pix_fmt rgba ... -i pipe:0 -i <input> \
+           -map 0:v -map 1:a? -c:a copy -c:v <encoder> <output>
+```
+
+- **Stage 1 (decoder ffmpeg):** demux + decode to raw RGBA frames.
+- **Stage 2 (wgpu sidecar):** runs the effect chain on the GPU. Init JSON carries `{ width, height, params }`. Effect order is fixed in the sidecar: `colorSettings → halation → aberration → bloom → grain → vignette → splitTone → cameraShake`.
+- **Stage 3 (encoder ffmpeg):** re-encodes RGBA to the chosen codec; copies the original audio track from `<input>`. A `scale=in_range=full:out_range=tv` filter converts full-range RGB to limited-range BT.709 YUV so players don't display a washed-out image.
+
+Progress is reported via FFmpeg's `-progress` file, polled every 100 ms by `parseProgress`.
+
+For still images, `packages/cli/src/gpu/image-pipeline.ts` skips ffmpeg entirely and drives the wgpu sidecar directly.
+
+### Encoder Selection
+
+`detectEncoders` parses `ffmpeg -encoders` once and caches the result. On macOS the pipeline prefers VideoToolbox (`h264_videotoolbox` / `hevc_videotoolbox`) and falls back to `libx264` / `libx265`. ProRes always uses `prores_ks`. CRF values are mapped to VideoToolbox `q:v` via `crfToVideoToolboxQ`.
+
+Export presets (`low` / `medium` / `high` / `max`) live in `packages/core/src/export-presets.ts` and resolve to `{ codec, crf, encodePreset, pixelFormat }`. CLI overrides (`--codec`, `--crf`, `--encode-preset`) win over preset values.
+
+### Build
+
+`bun run build` is a three-step compile:
+
+1. `cargo build --release` — produces `packages/wgpu/target/release/hance-wgpu`.
+2. `bun run scripts/build-ui.ts` — bundles the UI into `packages/ui/dist/`.
+3. `bun build packages/cli/src/cli.ts --compile` — produces a single `hance` executable. The wgpu sidecar binary is located via `sidecarPath()`.
+
+`HANCE_VERSION` is injected at compile time via `--define`. Cross-target builds use `BUN_TARGET`.
+
 ## Look Matcher
 
 AI-powered feature that analyzes a reference image and matches its look to the user's footage or image.
