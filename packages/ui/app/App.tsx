@@ -254,7 +254,16 @@ export function App() {
       setExportProgress(p => ({ ...p, state: "rendering" }));
       await consumeSSE(res, {
         onProgress: (p) => setExportProgress(prev => ({ ...prev, progress: p })),
-        onDone: (data) => setExportProgress({ state: "done", progress: 1, downloadUrl: data.downloadUrl as string, error: null }),
+        onDone: (data) => {
+          const url = data.downloadUrl as string;
+          setExportProgress({ state: "done", progress: 1, downloadUrl: url, error: null });
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = opts.outputPath;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        },
         onError: (msg) => setExportProgress({ state: "error", progress: 0, downloadUrl: null, error: msg }),
       });
     } catch (err) {

@@ -40,19 +40,11 @@ export function ExportModal({ defaultBasename, onCancel, onExport }: Props) {
     setOutputPath(prev => prev.replace(/\.(mp4|mov)$/i, `.${extForCodec(next)}`));
   }
 
-  function onChooseFile() {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".mp4,.mov";
-    input.onchange = () => {
-      const f = input.files?.[0];
-      if (f) setOutputPath(f.name);
-    };
-    input.click();
-  }
-
   function submit() {
-    onExport({ codec, crf: crfForQuality(quality), outputPath });
+    const ext = extForCodec(codec);
+    const trimmed = outputPath.trim() || `${defaultBasename}_hance.${ext}`;
+    const withExt = /\.(mp4|mov)$/i.test(trimmed) ? trimmed.replace(/\.(mp4|mov)$/i, `.${ext}`) : `${trimmed}.${ext}`;
+    onExport({ codec, crf: crfForQuality(quality), outputPath: withExt });
   }
 
   const isProRes = codec === "ProRes 422";
@@ -98,21 +90,15 @@ export function ExportModal({ defaultBasename, onCancel, onExport }: Props) {
           </div>
 
           <div>
-            <div className="text-zinc-400 mb-1.5">Output path</div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                readOnly
-                value={outputPath}
-                className="flex-1 bg-zinc-900 border border-zinc-700 text-zinc-200 px-2 py-1.5 rounded-sm"
-              />
-              <button
-                onClick={onChooseFile}
-                className="bg-zinc-700 text-zinc-200 hover:bg-zinc-600 transition-colors rounded-sm p-btn"
-              >
-                Choose…
-              </button>
-            </div>
+            <div className="text-zinc-400 mb-1.5">Filename</div>
+            <input
+              type="text"
+              name="output-filename"
+              value={outputPath}
+              onChange={e => setOutputPath(e.target.value)}
+              className="w-full bg-zinc-900 border border-accent text-zinc-200 px-2 py-1.5 rounded-sm"
+            />
+            <div className="text-zinc-500 text-[11px] mt-1">Saved to your browser's Downloads folder.</div>
           </div>
         </div>
 
