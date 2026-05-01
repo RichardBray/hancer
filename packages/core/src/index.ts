@@ -14,4 +14,7 @@ export { EFFECT_SCHEMA, getDefaults } from "./schema";
 export type { PresetData } from "./presets";
 export { loadPreset, applyPreset, builtinPresetsDir, userPresetsDir, listPresetNames } from "./presets";
 
+export type { PresetIndexEntry } from "./preset-index";
+export { buildPresetIndex, rebuildPresetIndex } from "./preset-index";
+
 export { probe, parseProbeOutput } from "./probe";
