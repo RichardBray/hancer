@@ -3,7 +3,7 @@ node_modules/
 
 # Build output
 dist/
-hance
+/hance
 
 # E2E test fixtures (generated, not committed)
 packages/cli/__tests__/e2e/fixtures/test.mp4
