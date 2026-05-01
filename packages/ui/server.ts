@@ -23,7 +23,6 @@ function listLooks(): string[] {
 }
 
 let initialFilePath: string | null = null;
-let initialLookPath: string | null = null;
 const allowedFilePaths = new Set<string>();
 
 export function allowFilePath(path: string): void {
@@ -32,10 +31,6 @@ export function allowFilePath(path: string): void {
 
 export function setInitialFile(path: string | null): void {
   initialFilePath = path;
-}
-
-export function setInitialLook(path: string | null): void {
-  initialLookPath = path;
 }
 
 function safeRebuildIndex(): void {
@@ -76,20 +71,6 @@ export function createServer(port: number) {
         return new Response(file, {
           headers: { "Content-Type": file.type || "application/octet-stream" },
         });
-      }
-
-      if (url.pathname === "/api/initial-look" && req.method === "GET") {
-        if (!initialLookPath) return new Response("no initial look", { status: 404 });
-        return Response.json({ path: initialLookPath });
-      }
-
-      if (url.pathname === "/api/seed-edit" && req.method === "POST") {
-        const body = await req.json();
-        const file = typeof body.file === "string" ? body.file : null;
-        const look = typeof body.look === "string" ? body.look : null;
-        if (file && existsSync(file)) initialFilePath = file;
-        initialLookPath = look;
-        return Response.json({ ok: true });
       }
 
       if (url.pathname === "/api/looks" && req.method === "GET") {

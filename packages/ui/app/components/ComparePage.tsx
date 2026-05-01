@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 interface Variant {
   label: string;
@@ -21,22 +21,10 @@ export function ComparePage() {
     { label: "Variant 3", src: params.get("v3"), lookPath: params.get("v3Look") },
   ];
 
-  const [busy, setBusy] = useState<number | null>(null);
-
-  async function editVariant(i: number) {
+  function editVariant(i: number) {
     const v = variants[i];
     if (!v.lookPath || !original) return;
-    setBusy(i);
-    try {
-      await fetch("/api/seed-edit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ file: original, look: v.lookPath }),
-      });
-      window.location.href = "/";
-    } finally {
-      setBusy(null);
-    }
+    window.location.href = `/?look=${encodeURIComponent(v.lookPath)}`;
   }
 
   function Cell({ title, src, action }: { title: string; src: string | null; action?: React.ReactNode }) {
@@ -74,10 +62,10 @@ export function ComparePage() {
             action={
               <button
                 onClick={() => editVariant(i)}
-                disabled={busy !== null || !v.lookPath || !original}
+                disabled={!v.lookPath || !original}
                 className="text-xs text-white bg-accent hover:bg-accent-hover disabled:opacity-50 rounded-sm px-2 py-0.5"
               >
-                {busy === i ? "Opening…" : "Edit"}
+                Edit
               </button>
             }
           />

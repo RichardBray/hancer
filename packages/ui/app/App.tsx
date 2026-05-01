@@ -151,18 +151,15 @@ export function App() {
         for (const group of groups) {
           disableAll[group.enableKey] = true;
         }
-        // Honor any initial look seeded by the server (e.g. from /compare → Edit).
+        // Honor any initial look passed via ?look= (e.g. from /compare → Edit).
         try {
-          const res = await fetch("/api/initial-look");
-          if (res.ok) {
-            const { path } = await res.json();
-            const lookName = (path as string).split("/").pop()?.replace(/\.hlook$/, "") ?? null;
-            if (lookName) {
-              const lookParams = await loadLook(lookName);
-              setParams(lookParams);
-              history.replace({ params: lookParams, activeLook: lookName });
-              return;
-            }
+          const lookPath = new URLSearchParams(window.location.search).get("look");
+          const lookName = lookPath?.split("/").pop()?.replace(/\.hlook$/, "") ?? null;
+          if (lookName) {
+            const lookParams = await loadLook(lookName);
+            setParams(lookParams);
+            history.replace({ params: lookParams, activeLook: lookName });
+            return;
           }
         } catch {}
         setParams(disableAll);

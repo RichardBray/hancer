@@ -21,14 +21,19 @@ http://localhost:<port>/compare
 
 ## Edit hand-off
 
-Clicking **Edit** on a variant cell:
+Clicking **Edit** on a variant cell navigates to:
 
-1. POSTs `{file: original, look: vNLook}` to `/api/seed-edit`.
-2. The server stores both as `initialFilePath` and `initialLookPath`.
-3. The page navigates to `/`, where the editor's mount-time fetches pick up the file (`/api/initial-file`) and the look (`/api/initial-look`) and seed the initial state.
+```
+/?look=<abs-path-to-vNLook>
+```
+
+The editor reads `?look=` on mount, derives the preset name from the basename (strips `.hlook`), and loads it via the existing preset API. The original file is served by the existing `/api/initial-file`, which `try` seeds via `setInitialFile()` before launching the browser.
+
+This is stateless — no server-side seeding endpoint, no POST round-trip. Two tabs/windows can show different looks without trampling each other.
 
 ## Constraints
 
 - The compare page reuses the editor's Tailwind setup, components, and font — never duplicate styling.
 - The page does not render WebGPU effects itself; it just displays pre-rendered files. All rendering happens in the `try` step before opening the page.
-- The server endpoints `/api/local-file`, `/api/initial-look`, and `/api/seed-edit` are the contract; do not add new endpoints without updating this doc.
+- The server endpoint `/api/local-file` is the contract for file display; do not add new endpoints without updating this doc.
+- Variant `.hlook` files must be discoverable by `loadPreset(name)` (i.e. written into the user presets dir) so the editor can resolve them by name.

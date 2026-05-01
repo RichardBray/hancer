@@ -23,11 +23,10 @@ Pick the subcommand from the user's request. When in doubt, ask.
 
 Pick one runner per invocation, in order:
 
-1. If `command -v hance` succeeds → use `hance` (binary, fastest, offline).
-2. Else if `command -v bun` succeeds → use `bunx hance@latest`.
-3. Else → use `npx hance@latest`.
+1. If `command -v bun` succeeds → use `bunx hance@latest` (preferred — fast cold-start, cached after first fetch).
+2. Else → use `npx hance@latest`.
 
-Never assume the binary is installed. Every subcommand must work on a fresh machine without `setup`.
+There is no compiled-binary install path. Every subcommand must work on a fresh machine; `setup` only verifies Bun + ffmpeg and shows examples.
 
 ## Hard rules
 

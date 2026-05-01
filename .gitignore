@@ -15,6 +15,9 @@ packages/cli/__tests__/e2e/fixtures/test_with_audio.mp4
 # UI build output
 packages/ui/dist/
 
+# Generated preset index (rebuild with: bun run scripts/build-preset-index.ts)
+/presets/index.json
+
 # Worktrees
 .worktrees/
 

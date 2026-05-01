@@ -1,32 +1,55 @@
 # /hance setup
 
-Install the compiled `hance` binary for faster, offline-capable runs. Optional — every other subcommand works without it via `bunx`/`npx`.
+Get the user ready to run Hance. There is no compiled-binary install path — every Hance invocation goes through `bunx hance@latest` (or `npx hance@latest` if Bun is unavailable). This subcommand just verifies prerequisites and shows the user some example commands.
 
 ## When to use
 
-The user explicitly asks to install Hance, or has asked for repeated runs and you want to avoid the npx cold-start each time.
+The user explicitly asks to "install hance" or "set up hance", or is running Hance for the first time and wants to confirm their environment is ready.
 
 ## What to do
 
-1. Confirm the user is on macOS or Linux (`uname -s`). If Windows, stop and tell them Hance does not currently support Windows.
-2. Run the agent-friendly installer:
+1. **Platform check.** Run `uname -s`. If it reports Windows (`MINGW*`, `MSYS*`, `CYGWIN*`), stop and tell the user:
+   > Hance does not currently support Windows. macOS and Linux only. WSL2 (Linux subsystem) works.
+
+2. **Bun check.** Run `command -v bun`. If missing, recommend installing it:
    ```sh
-   curl -fsSL https://raw.githubusercontent.com/Orva-Studio/hancer/main/scripts/install-agent.sh | sh
+   curl -fsSL https://bun.sh/install | bash
    ```
-3. The installer is **install-only**. If it reports "already installed", do nothing — there is no upgrade path here. A future Hance CLI release will handle self-update; do not try to force a reinstall.
-4. **ffmpeg check.** The installer only warns if ffmpeg is missing (it does not install it). If the output contains `ffmpeg missing`, offer to install it for the user:
+   Bun is the preferred runner — it's faster than `npx` and handles the cold-start better. If the user refuses Bun, `npx hance@latest` is the fallback (no extra setup needed beyond a working Node.js).
+
+3. **ffmpeg check.** Run `command -v ffmpeg`. If missing, offer to install it (always confirm before running `sudo`):
    - macOS: `brew install ffmpeg` (only if `command -v brew` succeeds; otherwise tell them to install Homebrew first).
-   - Linux: detect the package manager and propose the matching command:
+   - Linux: detect the package manager and propose:
      - `apt` → `sudo apt-get update && sudo apt-get install -y ffmpeg`
      - `dnf` → `sudo dnf install -y ffmpeg`
      - `pacman` → `sudo pacman -S --noconfirm ffmpeg`
      - `zypper` → `sudo zypper install -y ffmpeg`
      - `apk` → `sudo apk add ffmpeg`
-   - Always confirm with the user before running a `sudo` command. If no package manager is recognized, just print the requirement and stop.
-5. On success, surface the printed example invocations to the user verbatim. The default install dir is `~/.hance/bin`. If that is not on `PATH`, tell the user to add it.
+   - If no package manager is recognized, just print the requirement and stop.
+
+4. **Show the user what they can do.** Print a short list of example invocations so they have something concrete to try next. Pick whichever runner is available — `bunx` if Bun is installed, otherwise `npx`:
+
+   ```sh
+   # Show help / list presets
+   bunx hance@latest --help
+   bunx hance@latest preset list
+
+   # Apply a preset to one file
+   bunx hance@latest input.jpg -o out.jpg --preset portra-400
+   bunx hance@latest input.mp4 -o out.mp4 --preset cinestill-800t
+
+   # Open the editor (UI)
+   bunx hance@latest ui
+
+   # Explore looks for a reference (uses /hance try)
+   #   "make this look like portra"
+   #   "show me 3 looks for this image"
+   ```
+
+   Tell the user that on first run, `bunx` will fetch the package once and cache it; subsequent runs are fast.
 
 ## Hard rules
 
-- Do not run `scripts/install.sh` (the human-facing curl-from-README installer). Use `install-agent.sh`.
-- Do not pass `--version` unless the user asked for a specific version.
-- Do not "upgrade" by deleting the binary and reinstalling. That is out of scope for this skill.
+- Do **not** suggest a binary install or a curl-from-GitHub installer. There is no longer one.
+- Do **not** offer to "upgrade" Hance — `bunx hance@latest` always pulls the latest version on its own.
+- Do **not** install Bun or ffmpeg without confirming with the user first.

@@ -22,22 +22,16 @@
 
 ## Maintenance
 
-The index is rebuilt automatically whenever a `.hlook` is created, edited, renamed, deleted, or imported. The hooks live in:
+`presets/index.json` is a **generated artifact** and is gitignored. It is not committed to the repo. Two places produce it:
 
-- `packages/cli/src/commands/preset.ts` (CLI `hance preset save`)
-- `packages/ui/server.ts` (UI server: POST/PUT/DELETE/import handlers)
+- **Repo (builtin-only):** `bun run scripts/build-preset-index.ts` writes `presets/index.json` from the `.hlook` files in `presets/`. Run this once after a fresh clone, or any time the builtin `.hlook`s change.
+- **Runtime (merged builtin + user):** `rebuildPresetIndex()` in `core/preset-index.ts` writes `~/.hance/presets/index.json`. It's invoked automatically whenever a `.hlook` is created, edited, renamed, deleted, or imported. Hooks live in `packages/cli/src/commands/preset.ts` (CLI) and `packages/ui/server.ts` (UI server POST/PUT/DELETE/import handlers).
 
-If the index ever looks stale, regenerate it manually:
-
-```sh
-bun run scripts/build-preset-index.ts   # builtin-only, for the repo
-```
-
-The runtime rebuild (in `core/preset-index.ts`) writes a merged builtin+user index to `~/.hance/presets/index.json`. The repo-committed `presets/index.json` is builtin-only.
+If `try` cannot find any index, build the repo one with the command above before continuing.
 
 ## How `try` uses the index
 
-1. Read the merged index (prefer `~/.hance/presets/index.json` if it exists, otherwise fall back to the `presets/index.json` shipped with the package).
+1. Read the merged index (prefer `~/.hance/presets/index.json` if it exists, otherwise fall back to the `presets/index.json` in the repo — building it via `scripts/build-preset-index.ts` first if missing).
 2. For prompt input: tokenize the prompt, score entries by keyword/description overlap.
 3. For reference-image input: describe the reference's color/contrast/grain qualities, score against `characteristics`.
 4. Pick the top 3 distinct entries (avoid two near-duplicates from the same family). If fewer than 3 strong matches, generate new `.hlook`s to fill out the slate — saving them re-triggers the index rebuild.
