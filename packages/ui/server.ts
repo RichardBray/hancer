@@ -1,4 +1,4 @@
-import { EFFECT_SCHEMA, loadPreset, builtinPresetsDir, userPresetsDir, listPresetNames, probe } from "@hance/core";
+import { EFFECT_SCHEMA, loadPreset, builtinPresetsDir, userPresetsDir, listPresetNames, probe, rebuildPresetIndex } from "@hance/core";
 import type { PresetData } from "@hance/core";
 import { runGpuExport } from "@hance/cli/src/pipeline";
 import { join, extname, basename } from "node:path";
@@ -23,9 +23,18 @@ function listLooks(): string[] {
 }
 
 let initialFilePath: string | null = null;
+const allowedFilePaths = new Set<string>();
+
+export function allowFilePath(path: string): void {
+  allowedFilePaths.add(path);
+}
 
 export function setInitialFile(path: string | null): void {
   initialFilePath = path;
+}
+
+function safeRebuildIndex(): void {
+  try { rebuildPresetIndex(); } catch (err) { console.error("preset index rebuild failed:", err); }
 }
 
 export function createServer(port: number) {
@@ -50,6 +59,17 @@ export function createServer(port: number) {
             "X-Filename": encodeURIComponent(name),
             "Content-Type": file.type || "application/octet-stream",
           },
+        });
+      }
+
+      if (url.pathname === "/api/local-file" && req.method === "GET") {
+        const filePath = url.searchParams.get("path");
+        if (!filePath || !allowedFilePaths.has(filePath) || !existsSync(filePath)) {
+          return new Response("File not found", { status: 404 });
+        }
+        const file = Bun.file(filePath);
+        return new Response(file, {
+          headers: { "Content-Type": file.type || "application/octet-stream" },
         });
       }
 
@@ -93,6 +113,7 @@ export function createServer(port: number) {
         if (!prep.ok) return prep.res;
         const lookData = { name, description: description || "", keywords: keywords || [], characteristics: characteristics || [], params: data };
         writeFileSync(prep.path, JSON.stringify(lookData, null, 2));
+        safeRebuildIndex();
         return Response.json({ ok: true });
       }
 
@@ -116,6 +137,7 @@ export function createServer(port: number) {
         }
         const updated = { ...existing, params: data };
         writeFileSync(filePath, JSON.stringify(updated, null, 2));
+        safeRebuildIndex();
         return Response.json({ ok: true });
       }
 
@@ -128,6 +150,7 @@ export function createServer(port: number) {
             if (existsSync(filePath)) unlinkSync(filePath);
           }
         }
+        safeRebuildIndex();
         return Response.json({ ok: true });
       }
 
@@ -141,6 +164,7 @@ export function createServer(port: number) {
             if (existsSync(oldPath)) {
               const newPath = join(dir, `${newName}.hlook`);
               renameSync(oldPath, newPath);
+              safeRebuildIndex();
               return Response.json({ ok: true });
             }
           }
@@ -165,6 +189,7 @@ export function createServer(port: number) {
         if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
         const name = (parsed.name as string) || file.name.replace(".hlook", "");
         writeFileSync(join(dir, `${name}.hlook`), JSON.stringify(parsed, null, 2));
+        safeRebuildIndex();
         return Response.json({ ok: true, name });
       }
 

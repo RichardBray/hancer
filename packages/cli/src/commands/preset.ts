@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { userPresetsDir, listPresetNames } from "@hance/core";
+import { userPresetsDir, listPresetNames, rebuildPresetIndex } from "@hance/core";
 import type { PresetData } from "@hance/core";
 import { parseEffectFlags, EFFECT_HELP_TEXT } from "../effect-flags";
 
@@ -58,6 +58,7 @@ async function runSave(argv: string[]): Promise<void> {
   }
 
   writeFileSync(file, JSON.stringify({ hance_version: VERSION, name: parsed.name, params: parsed.overrides }, null, 2));
+  try { rebuildPresetIndex(); } catch (err) { console.error("preset index rebuild failed:", (err as Error).message); }
   process.stdout.write(path.resolve(file) + "\n");
 }
 

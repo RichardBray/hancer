@@ -3,7 +3,7 @@ node_modules/
 
 # Build output
 dist/
-hance
+/hance
 
 # E2E test fixtures (generated, not committed)
 packages/cli/__tests__/e2e/fixtures/test.mp4
@@ -14,6 +14,9 @@ packages/cli/__tests__/e2e/fixtures/test_with_audio.mp4
 
 # UI build output
 packages/ui/dist/
+
+# Generated preset index (rebuild with: bun run scripts/build-preset-index.ts)
+/presets/index.json
 
 # Worktrees
 .worktrees/
