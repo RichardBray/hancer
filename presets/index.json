@@ -1,0 +1,198 @@
+[
+  {
+    "name": "CineStill 800T",
+    "description": "CineStill 800T — tungsten-balanced film with iconic red halation around highlights",
+    "keywords": [
+      "cinestill",
+      "800t",
+      "tungsten",
+      "halation",
+      "neon",
+      "night"
+    ],
+    "characteristics": [
+      "cool blue cast",
+      "strong red halation",
+      "dreamy highlights",
+      "low light"
+    ],
+    "path": "presets/cinestill-800t.hlook"
+  },
+  {
+    "name": "Default",
+    "description": "Balanced cinematic look with subtle film effects",
+    "keywords": [
+      "default",
+      "balanced",
+      "cinematic"
+    ],
+    "characteristics": [
+      "neutral",
+      "natural contrast"
+    ],
+    "path": "presets/default.hlook"
+  },
+  {
+    "name": "Fuji Pro 400H",
+    "description": "Fuji Pro 400H — pastel greens and blues, cool soft skin, wedding-photographer favorite",
+    "keywords": [
+      "fuji",
+      "pro 400h",
+      "pastel",
+      "wedding",
+      "soft"
+    ],
+    "characteristics": [
+      "pastel palette",
+      "cool tones",
+      "soft skin",
+      "airy highlights"
+    ],
+    "path": "presets/fuji-pro-400h.hlook"
+  },
+  {
+    "name": "Ilford HP5",
+    "description": "Ilford HP5 Plus 400 — classic black & white film with pronounced grain and gritty contrast",
+    "keywords": [
+      "hp5",
+      "ilford",
+      "black and white",
+      "monochrome",
+      "grain"
+    ],
+    "characteristics": [
+      "black and white",
+      "high grain",
+      "gritty contrast",
+      "documentary"
+    ],
+    "path": "presets/hp5.hlook"
+  },
+  {
+    "name": "Kodachrome 64",
+    "description": "Kodachrome 64 — vintage slide film with rich reds, deep blacks, and a nostalgic warmth",
+    "keywords": [
+      "kodachrome",
+      "kodak",
+      "vintage",
+      "reds",
+      "nostalgic"
+    ],
+    "characteristics": [
+      "rich reds",
+      "deep blacks",
+      "warm shadows",
+      "vintage"
+    ],
+    "path": "presets/kodachrome-64.hlook"
+  },
+  {
+    "name": "Lomography Redscale",
+    "description": "Lomography Redscale — film exposed through its base layer for a dramatic orange-red wash",
+    "keywords": [
+      "lomography",
+      "redscale",
+      "orange",
+      "experimental",
+      "warm"
+    ],
+    "characteristics": [
+      "heavy red-orange cast",
+      "high contrast",
+      "crushed blues",
+      "experimental"
+    ],
+    "path": "presets/lomography-redscale.hlook"
+  },
+  {
+    "name": "Polaroid SX-70",
+    "description": "Polaroid SX-70 — washed-out instant film with dreamy low contrast and a cool blue cast",
+    "keywords": [
+      "polaroid",
+      "sx-70",
+      "instant",
+      "dreamy",
+      "vintage"
+    ],
+    "characteristics": [
+      "faded blacks",
+      "low contrast",
+      "blue shift",
+      "soft halation",
+      "heavy vignette"
+    ],
+    "path": "presets/polaroid-sx70.hlook"
+  },
+  {
+    "name": "Portra 400",
+    "description": "Kodak Portra 400 — warm, low-contrast portrait film with soft skin tones",
+    "keywords": [
+      "portra",
+      "kodak",
+      "portrait",
+      "warm",
+      "soft"
+    ],
+    "characteristics": [
+      "warm skin tones",
+      "low contrast",
+      "fine grain",
+      "natural"
+    ],
+    "path": "presets/portra-400.hlook"
+  },
+  {
+    "name": "Superia 400",
+    "description": "Fuji Superia 400 — consumer color negative with a green-cyan cast and 90s point-and-shoot character",
+    "keywords": [
+      "superia",
+      "fuji",
+      "consumer",
+      "nostalgic",
+      "90s"
+    ],
+    "characteristics": [
+      "green-cyan shift",
+      "punchy mid-contrast",
+      "visible grain",
+      "snapshot feel"
+    ],
+    "path": "presets/superia-400.hlook"
+  },
+  {
+    "name": "Velvia 50",
+    "description": "Fuji Velvia 50 — punchy, saturated slide film for vivid landscapes",
+    "keywords": [
+      "velvia",
+      "fuji",
+      "landscape",
+      "saturated",
+      "slide"
+    ],
+    "characteristics": [
+      "high saturation",
+      "punchy contrast",
+      "vivid greens and blues",
+      "minimal grain"
+    ],
+    "path": "presets/velvia-50.hlook"
+  },
+  {
+    "name": "Vision3 250D",
+    "description": "Kodak Vision3 250D — modern motion-picture daylight stock with clean cinematic neutrality",
+    "keywords": [
+      "vision3",
+      "kodak",
+      "cinema",
+      "motion picture",
+      "daylight"
+    ],
+    "characteristics": [
+      "clean neutral",
+      "wide latitude",
+      "cinematic",
+      "subtle grain"
+    ],
+    "path": "presets/vision3-250d.hlook"
+  }
+]
