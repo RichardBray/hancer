@@ -10,22 +10,24 @@ A single Claude skill, `/hance`, exposing six subcommands that drive the Hancer 
 
 ## Prerequisite (blocker)
 
-The skill assumes `bunx hance@latest` works. **The `hance` npm package does not yet exist** — publishing it is a hard prerequisite before this skill can ship. The user has noted ongoing trouble with their npm account; resolving that and publishing v0.4.x to npm is blocker #1.
+The skill assumes `npx hance@latest` (or `bunx hance@latest`) works. **The `hance` npm package does not yet exist** — publishing it is a hard prerequisite before this skill can ship. The user has noted ongoing trouble with their npm account; resolving that and publishing v0.4.x to npm is blocker #1.
 
 ## Distribution model
 
-Bunx-first, binary-optional.
+Npx-by-default, bunx if available, binary-optional.
 
-- **Default execution path:** every subcommand invokes `bunx hance@latest <args>`. No install required for the skill to work on a fresh machine.
-- **Speedup path:** if `hance` is on `PATH` (compiled binary installed via `setup`), use it instead. Faster startup, works offline.
-- **No "you must run setup first" failure mode.** Every subcommand works without `setup` having been run.
-- **No `update` subcommand.** Bunx is always-fresh; the binary is upgraded by re-running `setup` (which re-invokes `install-agent.sh`).
+- **Runner selection (per invocation):**
+  1. If `hance` is on `PATH` (binary installed) → use it. Fastest, offline-capable.
+  2. Else if `bun` is on `PATH` → `bunx hance@latest <args>`.
+  3. Else → `npx hance@latest <args>`. (Node is far more universally available than Bun, so npx is the safe default.)
+- **No "you must run setup first" failure mode.** Every subcommand works on a fresh machine without `setup`.
+- **No `update` subcommand and no auto-upgrade in `setup`.** The binary, once installed, is left alone. A future version of the `hance` CLI will check for new releases on its own; that work is out of scope for this skill.
 
 ## Subcommands (5 + setup = 6 total)
 
 | Cmd | Args | Purpose |
 |---|---|---|
-| `setup` | — | Optional: install the compiled binary for faster/offline runs. Re-running upgrades. |
+| `setup` | — | Optional: install the compiled binary for faster/offline runs. Install-only (no upgrade behavior). |
 | `run` | `<preset> <file>` **or** `<file> <preset>` (order-agnostic) | Apply a known preset to one file. |
 | `try` | `<file> [prompt \| reference-image]` | Generate 3 variant looks for one image/video, open browser picker, allow Edit-in-UI. |
 | `batch` | `<preset> <dir-or-glob>` | Apply one preset to many files (mixed images + videos). User must know the preset. |
@@ -38,7 +40,7 @@ Bunx-first, binary-optional.
   - Print terse, line-per-step progress (no spinners, no large ASCII).
   - Print an explicit "Windows is not currently supported" notice and exit cleanly on Windows detection.
   - On success, print 2–3 example invocations the user can paste next.
-- Re-running `setup` upgrades the binary in place.
+- `setup` is install-only. It does not check for or apply upgrades. Re-running on an already-installed system is a no-op (or a friendly "already installed at vX.Y.Z" message). A future Hance CLI release will handle self-update checks; that is out of scope here.
 
 ### `run`
 
@@ -123,7 +125,7 @@ skills/hance/
 
 ## Out of scope (intentional)
 
-- Separate `update` subcommand (bunx makes it unnecessary; binary updates ride on `setup`).
+- Separate `update` subcommand. Npx/bunx are always-fresh; binary self-update will be handled by a future Hance CLI release, not by this skill.
 - Splitting `try` into prompt-only vs. image-only variants.
 - A composite preview image (the agent never sees previews; the user does, in-browser).
 - Interactive preset prompting in `batch`.
