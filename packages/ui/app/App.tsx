@@ -205,11 +205,15 @@ export function App() {
   }, [clearLook, schema]);
 
   const handleLookSelect = useCallback(async (name: string) => {
-    const lookParams = await loadLook(name);
-    setAnimating(true);
-    setParams(lookParams);
-    setTimeout(() => setAnimating(false), 350);
-    historyRef.current.commit({ params: lookParams, activeLook: name });
+    try {
+      const lookParams = await loadLook(name);
+      setAnimating(true);
+      setParams(lookParams);
+      setTimeout(() => setAnimating(false), 350);
+      historyRef.current.commit({ params: lookParams, activeLook: name });
+    } catch (err) {
+      console.error(`Failed to load look "${name}":`, err);
+    }
   }, [loadLook]);
 
   const handleLookHover = useCallback((name: string) => {
@@ -377,7 +381,7 @@ export function App() {
             onDeleteLook={deleteLook}
             onRenameLook={renameLook}
             onImportLook={importLook}
-            onGetLookInfo={(name) => fetchJson(`/api/look/info?name=${encodeURIComponent(name)}`)}
+            onGetLookInfo={async (name) => await fetchJson(`/api/look/info?name=${encodeURIComponent(name)}`)}
           />
         </div>
 

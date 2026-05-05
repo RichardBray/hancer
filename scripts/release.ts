@@ -30,12 +30,20 @@ if (existing) {
   process.exit(1);
 }
 
-const pkgPath = "package.json";
-const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
-pkg.version = version;
-writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
+const rootPkgPath = "package.json";
+const rootPkg = JSON.parse(readFileSync(rootPkgPath, "utf8"));
+rootPkg.version = version;
+writeFileSync(rootPkgPath, JSON.stringify(rootPkg, null, 2) + "\n");
 
-await $`git add package.json`;
+const workspaces = ["packages/core", "packages/cli", "packages/ui"];
+for (const ws of workspaces) {
+  const wsPkgPath = `${ws}/package.json`;
+  const wsPkg = JSON.parse(readFileSync(wsPkgPath, "utf8"));
+  wsPkg.version = version;
+  writeFileSync(wsPkgPath, JSON.stringify(wsPkg, null, 2) + "\n");
+}
+
+await $`git add package.json packages/*/package.json`;
 await $`git commit -m ${`chore(release): ${tag}`}`;
 await $`git tag ${tag}`;
 await $`git push origin main ${tag}`;

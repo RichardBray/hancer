@@ -27,6 +27,7 @@ const result = await Bun.build({
   define: {
     "process.env.NODE_ENV": '"production"',
     HANCE_VERSION: JSON.stringify(process.env.HANCE_VERSION || "dev"),
+    SENTRY_DSN: JSON.stringify(process.env.SENTRY_DSN || ""),
   },
   external: [],
 });
