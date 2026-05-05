@@ -18,6 +18,7 @@ import { CompareOverlay } from "./components/CompareOverlay";
 import type { Renderer, PreviewParams } from "./gpu/renderer";
 import type { EffectGroup } from "@hance/core";
 import { consumeSSE } from "./lib/sse";
+import { fetchJson } from "./lib/fetchJson";
 
 export function App() {
   const { file, objectUrl, proxyUrl, isVideo, upload, setProxyUrl, error: uploadError, clearError } = useUpload();
@@ -111,8 +112,10 @@ export function App() {
 
   const {
     looks, activeLook, activeLookParams,
+    error: looksError, clearError: clearLooksError,
     refreshLooks, loadLook, clearLook, saveLook, createLook, deleteLook, renameLook, importLook, restoreActiveLook,
   } = useLooks();
+  const [schemaError, setSchemaError] = useState<string | null>(null);
 
   const hasChanges = activeLookParams !== null && Object.keys(activeLookParams).some(
     key => activeLookParams[key] !== params[key]
@@ -141,18 +144,23 @@ export function App() {
 
   // Fetch schema and looks on mount — external server data
   useEffect(() => {
-    fetch("/api/schema").then(r => r.json()).then((groups: EffectGroup[]) => {
-      setSchema(groups);
-      // Start with no effects applied (No Look)
-      const disableAll: Record<string, boolean> = {};
-      for (const group of groups) {
-        disableAll[group.enableKey] = true;
-      }
-      setParams(disableAll);
-      // Replace (not commit) the initial present so we don't leave the
-      // pre-schema empty `{}` snapshot reachable via undo.
-      history.replace({ params: disableAll, activeLook: null });
-    });
+    fetchJson<EffectGroup[]>("/api/schema")
+      .then((groups) => {
+        setSchema(groups);
+        // Start with no effects applied (No Look)
+        const disableAll: Record<string, boolean> = {};
+        for (const group of groups) {
+          disableAll[group.enableKey] = true;
+        }
+        setParams(disableAll);
+        // Replace (not commit) the initial present so we don't leave the
+        // pre-schema empty `{}` snapshot reachable via undo.
+        history.replace({ params: disableAll, activeLook: null });
+      })
+      .catch((err: Error) => {
+        console.error("Failed to load effect schema:", err);
+        setSchemaError(`Could not load effect controls: ${err.message}`);
+      });
     refreshLooks();
   }, []);
 
@@ -174,10 +182,6 @@ export function App() {
 
   const handleParamChange = useCallback((key: string, value: number | string | boolean) => {
     setParams(prev => ({ ...prev, [key]: value }));
-  }, []);
-
-  const handleBatchChange = useCallback((data: Record<string, string | number | boolean>) => {
-    setParams(prev => ({ ...prev, ...data }));
   }, []);
 
   const handleReset = useCallback(() => {
@@ -213,11 +217,13 @@ export function App() {
     if (!hoverParamsRef.current) {
       hoverParamsRef.current = { ...params };
     }
-    fetch(`/api/look?name=${encodeURIComponent(name)}`)
-      .then(r => r.json())
-      .then((lookParams: PreviewParams) => {
+    fetchJson<PreviewParams>(`/api/look?name=${encodeURIComponent(name)}`)
+      .then((lookParams) => {
         renderer.setParams(lookParams);
         if (!isVideo) renderer.renderFrame();
+      })
+      .catch((err: Error) => {
+        console.error(`Look hover preview failed for "${name}":`, err);
       });
   }, [renderer, params, isVideo]);
 
@@ -371,10 +377,7 @@ export function App() {
             onDeleteLook={deleteLook}
             onRenameLook={renameLook}
             onImportLook={importLook}
-            onGetLookInfo={async (name) => {
-              const res = await fetch(`/api/look/info?name=${encodeURIComponent(name)}`);
-              return await res.json();
-            }}
+            onGetLookInfo={(name) => fetchJson(`/api/look/info?name=${encodeURIComponent(name)}`)}
           />
         </div>
 
@@ -396,7 +399,12 @@ export function App() {
               />
             </>
           )}
-          {previewError && isVideo ? (
+          {previewError && !isVideo ? (
+            <div className="flex flex-col items-center gap-3 max-w-md text-center p-6 bg-zinc-900 rounded-lg border border-danger/40">
+              <div className="text-sm text-zinc-200">Preview failed</div>
+              <div className="text-xs text-zinc-500">{previewError.message}</div>
+            </div>
+          ) : previewError && isVideo ? (
             <div className="flex flex-col items-center gap-4 max-w-md text-center p-6 bg-zinc-900 rounded-lg border border-zinc-800">
               <div className="text-sm text-zinc-200">
                 This codec isn't supported by the browser preview.
@@ -539,6 +547,23 @@ export function App() {
             }}
           >Replace reference</button>
         </>
+      )}
+
+      {(schemaError || looksError) && (
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-8 flex flex-col gap-2 z-40">
+          {schemaError && (
+            <div className="flex items-center gap-3 bg-zinc-900 border border-danger/50 px-4 py-2 rounded-md text-xs text-danger">
+              <span>{schemaError}</span>
+              <button onClick={() => setSchemaError(null)} className="text-zinc-400 hover:text-zinc-200">×</button>
+            </div>
+          )}
+          {looksError && (
+            <div className="flex items-center gap-3 bg-zinc-900 border border-danger/50 px-4 py-2 rounded-md text-xs text-danger">
+              <span>{looksError}</span>
+              <button onClick={clearLooksError} className="text-zinc-400 hover:text-zinc-200">×</button>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

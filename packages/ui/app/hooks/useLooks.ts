@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { getThumbnailGenerator } from "../lib/lookThumbnails";
+import { fetchJson, fetchOk } from "../lib/fetchJson";
 
 export interface LookMeta {
   name: string;
@@ -15,15 +16,14 @@ export function validateLookName(name: string): string | null {
 }
 
 async function fetchLookParams(name: string): Promise<Record<string, string | number | boolean>> {
-  const res = await fetch(`/api/look?name=${encodeURIComponent(name)}`);
-  if (!res.ok) throw new Error(`Failed to load look ${name}`);
-  return res.json();
+  return fetchJson<Record<string, string | number | boolean>>(`/api/look?name=${encodeURIComponent(name)}`);
 }
 
 export function useLooks() {
   const [looks, setLooks] = useState<LookMeta[]>([]);
   const [activeLook, setActiveLook] = useState<string | null>(null);
   const [activeLookParams, setActiveLookParams] = useState<Record<string, string | number | boolean> | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const updateThumbnail = useCallback(async (name: string) => {
     try {
@@ -36,9 +36,8 @@ export function useLooks() {
   }, []);
 
   const refreshLooks = useCallback(() => {
-    fetch("/api/looks")
-      .then(r => r.json())
-      .then((names: string[]) => {
+    fetchJson<string[]>("/api/looks")
+      .then((names) => {
         setLooks(prev => {
           const prevByName = new Map(prev.map(l => [l.name, l.thumbnailUrl]));
           return names.map(name => ({ name, thumbnailUrl: prevByName.get(name) ?? "" }));
@@ -46,6 +45,10 @@ export function useLooks() {
         for (const name of names) {
           void updateThumbnail(name);
         }
+      })
+      .catch((err: Error) => {
+        console.error("Failed to load looks:", err);
+        setError(`Failed to load looks: ${err.message}`);
       });
   }, [updateThumbnail]);
 
@@ -57,13 +60,18 @@ export function useLooks() {
   }, []);
 
   const saveLook = useCallback(async (name: string, data: Record<string, string | number | boolean>) => {
-    await fetch("/api/look", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, data }),
-    });
-    setActiveLookParams({ ...data });
-    void updateThumbnail(name);
+    try {
+      await fetchOk("/api/look", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, data }),
+      });
+      setActiveLookParams({ ...data });
+      void updateThumbnail(name);
+    } catch (err) {
+      setError(`Failed to save look "${name}": ${(err as Error).message}`);
+      throw err;
+    }
   }, [updateThumbnail]);
 
   const createLook = useCallback(async (
@@ -71,37 +79,52 @@ export function useLooks() {
     data: Record<string, string | number | boolean>,
     metadata: { description: string; keywords: string[]; characteristics: string[] }
   ) => {
-    await fetch("/api/looks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, data, ...metadata }),
-    });
-    setActiveLook(name);
-    setActiveLookParams({ ...data });
-    refreshLooks();
+    try {
+      await fetchOk("/api/looks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, data, ...metadata }),
+      });
+      setActiveLook(name);
+      setActiveLookParams({ ...data });
+      refreshLooks();
+    } catch (err) {
+      setError(`Failed to create look "${name}": ${(err as Error).message}`);
+      throw err;
+    }
   }, [refreshLooks]);
 
   const deleteLook = useCallback(async (name: string) => {
-    await fetch(`/api/look?name=${encodeURIComponent(name)}`, { method: "DELETE" });
-    if (activeLook === name) {
-      setActiveLook(null);
-      setActiveLookParams(null);
+    try {
+      await fetchOk(`/api/look?name=${encodeURIComponent(name)}`, { method: "DELETE" });
+      if (activeLook === name) {
+        setActiveLook(null);
+        setActiveLookParams(null);
+      }
+      const gen = await getThumbnailGenerator();
+      gen.invalidate(name);
+      refreshLooks();
+    } catch (err) {
+      setError(`Failed to delete look "${name}": ${(err as Error).message}`);
+      throw err;
     }
-    const gen = await getThumbnailGenerator();
-    gen.invalidate(name);
-    refreshLooks();
   }, [activeLook, refreshLooks]);
 
   const renameLook = useCallback(async (oldName: string, newName: string) => {
-    await fetch("/api/look/rename", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ oldName, newName }),
-    });
-    if (activeLook === oldName) setActiveLook(newName);
-    const gen = await getThumbnailGenerator();
-    gen.rename(oldName, newName);
-    refreshLooks();
+    try {
+      await fetchOk("/api/look/rename", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ oldName, newName }),
+      });
+      if (activeLook === oldName) setActiveLook(newName);
+      const gen = await getThumbnailGenerator();
+      gen.rename(oldName, newName);
+      refreshLooks();
+    } catch (err) {
+      setError(`Failed to rename look "${oldName}": ${(err as Error).message}`);
+      throw err;
+    }
   }, [activeLook, refreshLooks]);
 
   const clearLook = useCallback(() => {
@@ -117,30 +140,35 @@ export function useLooks() {
       setActiveLookParams(null);
       return;
     }
-    const res = await fetch(`/api/look?name=${encodeURIComponent(name)}`);
-    if (!res.ok) {
+    try {
+      const params = await fetchLookParams(name);
+      setActiveLook(name);
+      setActiveLookParams({ ...params });
+    } catch {
       // Look was deleted between snapshot and undo; clear rather than crash.
       setActiveLook(null);
       setActiveLookParams(null);
-      return;
     }
-    const params = await res.json();
-    setActiveLook(name);
-    setActiveLookParams({ ...params });
   }, []);
 
   const importLook = useCallback(async (file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await fetch("/api/look/import", { method: "POST", body: formData });
-    if (!res.ok) throw new Error("Import failed");
-    refreshLooks();
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      await fetchOk("/api/look/import", { method: "POST", body: formData });
+      refreshLooks();
+    } catch (err) {
+      setError(`Import failed: ${(err as Error).message}`);
+      throw err;
+    }
   }, [refreshLooks]);
 
   return {
     looks,
     activeLook,
     activeLookParams,
+    error,
+    clearError: useCallback(() => setError(null), []),
     refreshLooks,
     loadLook,
     clearLook,

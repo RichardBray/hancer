@@ -31,13 +31,25 @@ export function Canvas({ src, isVideo, params, onRendererReady, onCanvasReady, o
 
       if (isVideo) {
         const video = videoRef.current!;
-        await new Promise<void>(resolve => {
-          video.onloadeddata = () => resolve();
-          if (video.readyState >= 2) resolve();
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error("Video load timed out after 15s — file may be corrupt or use an unsupported codec"));
+          }, 15000);
+          video.onloadeddata = () => { clearTimeout(timeout); resolve(); };
+          video.onerror = () => {
+            clearTimeout(timeout);
+            const code = video.error?.code;
+            const msg = video.error?.message || "unknown error";
+            reject(new Error(`Video load failed (code ${code ?? "?"}): ${msg}`));
+          };
+          if (video.readyState >= 2) { clearTimeout(timeout); resolve(); }
         });
         // Seek to start to ensure first frame is decoded and visible
-        await new Promise<void>(resolve => {
-          video.onseeked = () => resolve();
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error("Video seek timed out after 5s"));
+          }, 5000);
+          video.onseeked = () => { clearTimeout(timeout); resolve(); };
           video.currentTime = 0;
         });
         const sourceWidth = video.videoWidth;
@@ -67,9 +79,16 @@ export function Canvas({ src, isVideo, params, onRendererReady, onCanvasReady, o
         renderLoop();
       } else {
         const img = imgRef.current!;
-        await new Promise<void>(resolve => {
-          img.onload = () => resolve();
-          if (img.complete) resolve();
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error("Image load timed out after 15s"));
+          }, 15000);
+          img.onload = () => { clearTimeout(timeout); resolve(); };
+          img.onerror = () => {
+            clearTimeout(timeout);
+            reject(new Error("Image failed to load — file may be corrupt or use an unsupported format"));
+          };
+          if (img.complete && img.naturalWidth > 0) { clearTimeout(timeout); resolve(); }
         });
         const sourceWidth = img.naturalWidth;
         const sourceHeight = img.naturalHeight;
