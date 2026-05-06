@@ -50,6 +50,12 @@ export function Canvas({ src, isVideo, params, onRendererReady, onCanvasReady, o
             reject(new Error("Video seek timed out after 5s"));
           }, 5000);
           video.onseeked = () => { clearTimeout(timeout); resolve(); };
+          video.onerror = () => {
+            clearTimeout(timeout);
+            const code = video.error?.code;
+            const msg = video.error?.message || "unknown error";
+            reject(new Error(`Video failed during seek (code ${code ?? "?"}): ${msg}`));
+          };
           video.currentTime = 0;
         });
         const sourceWidth = video.videoWidth;

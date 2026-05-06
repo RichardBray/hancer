@@ -16,11 +16,11 @@ if (SENTRY_DSN) {
     environment: isDev ? "development" : "production",
     sendDefaultPii: false,
     integrations: [
-    Sentry.replayIntegration(),
-    Sentry.httpClientIntegration({ failedRequestStatusCodes: [[400, 599]] }),
-  ],
-  replaysSessionSampleRate: isDev ? 1.0 : 0.1,
-  replaysOnErrorSampleRate: isDev ? 1.0 : 0.5,
+      Sentry.replayIntegration(),
+      Sentry.httpClientIntegration({ failedRequestStatusCodes: [[400, 599]] }),
+    ],
+    replaysSessionSampleRate: isDev ? 1.0 : 0.1,
+    replaysOnErrorSampleRate: isDev ? 1.0 : 0.5,
   });
 }
 

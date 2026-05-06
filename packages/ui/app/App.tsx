@@ -213,8 +213,10 @@ export function App() {
       historyRef.current.commit({ params: lookParams, activeLook: name });
     } catch (err) {
       console.error(`Failed to load look "${name}":`, err);
+      clearLooksError();
+      setSchemaError(`Failed to load look "${name}": ${(err as Error).message}`);
     }
-  }, [loadLook]);
+  }, [loadLook, clearLooksError]);
 
   const handleLookHover = useCallback((name: string) => {
     if (!renderer) return;
