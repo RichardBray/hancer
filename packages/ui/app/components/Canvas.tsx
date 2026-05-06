@@ -140,6 +140,7 @@ export function Canvas({ src, isVideo, params, onRendererReady, onCanvasReady, o
         <video
           ref={videoRef}
           src={src}
+          crossOrigin="anonymous"
           className="hidden"
           playsInline
         />
@@ -148,6 +149,7 @@ export function Canvas({ src, isVideo, params, onRendererReady, onCanvasReady, o
         <img
           ref={imgRef}
           src={src}
+          crossOrigin="anonymous"
           className="hidden"
         />
       )}
