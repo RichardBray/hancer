@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import type { EffectGroup as EffectGroupType, OptionDef } from "@hance/core";
 import { RangeSlider } from "./RangeSlider";
 import { Toggle } from "./Toggle";
@@ -12,7 +12,16 @@ interface Props {
   animating: boolean;
 }
 
-export function EffectGroup({ group, values, onChange, onCommit, animating }: Props) {
+function shallowEqualValues(a: Record<string, string | number | boolean>, b: Record<string, string | number | boolean>): boolean {
+  const keysA = Object.keys(a);
+  if (keysA.length !== Object.keys(b).length) return false;
+  for (const k of keysA) {
+    if (a[k] !== b[k]) return false;
+  }
+  return true;
+}
+
+export const EffectGroup = memo(function EffectGroup({ group, values, onChange, onCommit, animating }: Props) {
   const [collapsed, setCollapsed] = useState(false);
   const enabled = values[group.enableKey] !== true;
 
@@ -53,7 +62,13 @@ export function EffectGroup({ group, values, onChange, onCommit, animating }: Pr
       )}
     </div>
   );
-}
+}, (prev, next) =>
+  prev.group === next.group &&
+  prev.onChange === next.onChange &&
+  prev.onCommit === next.onCommit &&
+  prev.animating === next.animating &&
+  shallowEqualValues(prev.values, next.values)
+);
 
 function OptionControl({ opt, value, onChange, onCommit, disabled, animating }: {
   opt: OptionDef;
