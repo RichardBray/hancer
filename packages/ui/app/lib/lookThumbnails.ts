@@ -13,6 +13,7 @@ let generatorPromise: Promise<Generator> | null = null;
 
 async function loadReferenceImage(): Promise<HTMLImageElement> {
   const img = new Image();
+  img.crossOrigin = "anonymous";
   img.src = REFERENCE_URL;
   await img.decode();
   return img;
