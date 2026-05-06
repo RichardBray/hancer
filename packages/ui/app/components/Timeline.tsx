@@ -24,12 +24,28 @@ export function formatTimecodeFrames(seconds: number, fps = 30): string {
 }
 
 export function Timeline({ videoRef }: Props) {
-  const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const [dragging, setDragging] = useState(false);
+  const draggingRef = useRef(false);
   const trackRef = useRef<HTMLDivElement>(null);
+  const playheadRef = useRef<HTMLDivElement>(null);
+  const timecodeRef = useRef<HTMLSpanElement>(null);
   const rafRef = useRef<number>(0);
+  const currentTimeRef = useRef(0);
+  const durationRef = useRef(0);
+  durationRef.current = duration;
+
+  function updatePlayheadDOM(time: number) {
+    currentTimeRef.current = time;
+    const dur = durationRef.current;
+    const percent = dur > 0 ? (time / dur) * 100 : 0;
+    if (playheadRef.current) {
+      playheadRef.current.style.left = `${percent}%`;
+    }
+    if (timecodeRef.current) {
+      timecodeRef.current.textContent = formatTimecodeFrames(time);
+    }
+  }
 
   // Sync with video element — must be useEffect since video is an external system
   useEffect(() => {
@@ -48,8 +64,8 @@ export function Timeline({ videoRef }: Props) {
     setPlaying(!videoRef.paused);
 
     function updateTime() {
-      if (videoRef && !dragging) {
-        setCurrentTime(videoRef.currentTime);
+      if (videoRef && !draggingRef.current) {
+        updatePlayheadDOM(videoRef.currentTime);
       }
       rafRef.current = requestAnimationFrame(updateTime);
     }
@@ -61,7 +77,7 @@ export function Timeline({ videoRef }: Props) {
       videoRef.removeEventListener("play", onPlay);
       videoRef.removeEventListener("pause", onPause);
     };
-  }, [videoRef, dragging]);
+  }, [videoRef]);
 
   // Spacebar play/pause — must be useEffect since it's a global keyboard listener
   useEffect(() => {
@@ -79,23 +95,23 @@ export function Timeline({ videoRef }: Props) {
   }, [videoRef]);
 
   const seekToPosition = useCallback((clientX: number) => {
-    if (!trackRef.current || !videoRef || !duration) return;
+    if (!trackRef.current || !videoRef || !durationRef.current) return;
     const rect = trackRef.current.getBoundingClientRect();
     const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    const time = ratio * duration;
+    const time = ratio * durationRef.current;
     videoRef.currentTime = time;
-    setCurrentTime(time);
-  }, [videoRef, duration]);
+    updatePlayheadDOM(time);
+  }, [videoRef]);
 
   const onMouseDown = useCallback((e: React.MouseEvent) => {
-    setDragging(true);
+    draggingRef.current = true;
     seekToPosition(e.clientX);
 
     function onMouseMove(e: MouseEvent) {
       seekToPosition(e.clientX);
     }
     function onMouseUp() {
-      setDragging(false);
+      draggingRef.current = false;
       document.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener("mouseup", onMouseUp);
     }
@@ -112,16 +128,15 @@ export function Timeline({ videoRef }: Props) {
   const skipToStart = useCallback(() => {
     if (!videoRef) return;
     videoRef.currentTime = 0;
-    setCurrentTime(0);
+    updatePlayheadDOM(0);
   }, [videoRef]);
 
   const skipToEnd = useCallback(() => {
-    if (!videoRef || !duration) return;
-    videoRef.currentTime = duration;
-    setCurrentTime(duration);
-  }, [videoRef, duration]);
+    if (!videoRef || !durationRef.current) return;
+    videoRef.currentTime = durationRef.current;
+    updatePlayheadDOM(durationRef.current);
+  }, [videoRef]);
 
-  const playheadPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const ticks = computeTicks(duration);
 
   return (
@@ -166,8 +181,8 @@ export function Timeline({ videoRef }: Props) {
             </svg>
           </button>
         </div>
-        <span className="ml-auto text-sm text-zinc-300 tabular-nums px-2 py-0.5">
-          {formatTimecodeFrames(currentTime)}
+        <span ref={timecodeRef} className="ml-auto text-sm text-zinc-300 tabular-nums px-2 py-0.5">
+          {formatTimecodeFrames(0)}
         </span>
       </div>
 
@@ -216,8 +231,9 @@ export function Timeline({ videoRef }: Props) {
 
         {/* Playhead */}
         <div
+          ref={playheadRef}
           className="absolute top-0 bottom-0 w-0.5 bg-white z-10 pointer-events-none"
-          style={{ left: `${playheadPercent}%` }}
+          style={{ left: "0%" }}
         >
           <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-2.5 h-2 bg-white rounded-sm" />
         </div>
