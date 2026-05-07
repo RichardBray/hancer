@@ -94,7 +94,7 @@ hance photo.png
 hance video.mp4 -o output.mp4
 
 # Batch process — outputs go next to each input (or into -o if it's a directory)
-hance clip1.mp4 clip2.mp4 clip3.mov -o ./graded/
+hance *.mp4 -o ./graded/
 
 # Load a built-in preset
 hance video.mp4 --preset heavy
