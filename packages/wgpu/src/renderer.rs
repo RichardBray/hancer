@@ -319,15 +319,14 @@ impl GpuRenderer {
                     &self.mip_down[i + 1].create_view(&TextureViewDescriptor::default()));
             }
 
-            let sigma = radius / 30.0;
-
-            // Primary halation: 4 mip levels
-            let primary_levels = MIP_LEVELS.min(4);
+            // Primary halation: level count scales with radius
+            let primary_levels = ((radius.log2() as usize) + 1).clamp(2, MIP_LEVELS);
+            let primary_weight: f32 = 0.6;
             for step in 0..primary_levels - 1 {
                 let i = primary_levels - 2 - step;
                 let coarser_idx = i + 1;
                 let coarser_tex = if step == 0 { &self.mip_down[coarser_idx] } else { &self.mip_up[coarser_idx] };
-                let w = (-(step as f32) / sigma).exp();
+                let w = primary_weight;
                 self.write_uniform(&self.upsample_ub, &[
                     w,
                     1.0 / self.mip_widths[coarser_idx] as f32,
@@ -359,12 +358,13 @@ impl GpuRenderer {
 
             // Aura layer: all mip levels, heavier low-mip weighting
             if aura_amount > 0.0 {
-                let aura_sigma = sigma * 0.5;
-                for step in 0..MIP_LEVELS - 1 {
-                    let i = MIP_LEVELS - 2 - step;
+                let aura_levels = (((radius * 3.0).log2() as usize) + 1).clamp(2, MIP_LEVELS);
+                let aura_weight: f32 = 0.4;
+                for step in 0..aura_levels - 1 {
+                    let i = aura_levels - 2 - step;
                     let coarser_idx = i + 1;
                     let coarser_tex = if step == 0 { &self.mip_down[coarser_idx] } else { &self.mip_up[coarser_idx] };
-                    let w = (-(step as f32) / aura_sigma).exp();
+                    let w = aura_weight;
                     self.write_uniform(&self.upsample_ub, &[
                         w,
                         1.0 / self.mip_widths[coarser_idx] as f32,

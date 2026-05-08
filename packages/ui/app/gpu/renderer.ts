@@ -267,14 +267,11 @@ export async function createRenderer(canvas: HTMLCanvasElement, init: RendererIn
           runPass(encoder, downsamplePipeline, bg, mipDown[i + 1].createView());
         }
 
-        const sigma = radius / 30.0;
-
-        function mipChainUpsample(startLevel: number, weights: number[]) {
+        function mipChainUpsample(startLevel: number, weight: number) {
           for (let i = startLevel - 2; i >= 0; i--) {
             const coarserIdx = i + 1;
             const coarserTex = coarserIdx === startLevel - 1 ? mipDown[coarserIdx] : mipUp[coarserIdx];
-            const w = weights[startLevel - 2 - i];
-            device.queue.writeBuffer(upsampleUB, 0, new Float32Array([w, 1.0 / mipWidths[coarserIdx], 1.0 / mipHeights[coarserIdx], 0]));
+            device.queue.writeBuffer(upsampleUB, 0, new Float32Array([weight, 1.0 / mipWidths[coarserIdx], 1.0 / mipHeights[coarserIdx], 0]));
             const bg = device.createBindGroup({
               layout: blendLayout,
               entries: [
@@ -288,28 +285,22 @@ export async function createRenderer(canvas: HTMLCanvasElement, init: RendererIn
           }
         }
 
-        // Primary halation: 4 mip levels, exponential falloff weights
-        const primaryLevels = Math.min(4, MIP_LEVELS);
-        const primaryWeights: number[] = [];
-        for (let i = 0; i < primaryLevels; i++) {
-          primaryWeights.push(Math.exp(-i / sigma));
-        }
-        mipChainUpsample(primaryLevels, primaryWeights);
+        // Primary halation: level count scales with radius
+        const primaryLevels = Math.max(2, Math.min(MIP_LEVELS, Math.floor(Math.log2(radius)) + 1));
+        const primaryWeight = 0.6;
+        mipChainUpsample(primaryLevels, primaryWeight);
 
         device.queue.writeBuffer(blendUB, 0, new Float32Array([amount, hue, sat * 0.5, 0]));
         const blendBG = makeBlendBindGroup(preHalation, mipUp[0], blendUB);
         runPass(encoder, blendPipeline, blendBG, other.createView());
         swap();
 
-        // Aura layer: all mip levels, heavier low-mip weighting
+        // Aura layer: more levels for wider spread
         if (auraAmount > 0) {
           const preAura = current;
-          const auraWeights: number[] = [];
-          const auraSigma = sigma * 0.5;
-          for (let i = 0; i < MIP_LEVELS; i++) {
-            auraWeights.push(Math.exp(-i / auraSigma));
-          }
-          mipChainUpsample(MIP_LEVELS, auraWeights);
+          const auraLevels = Math.max(2, Math.min(MIP_LEVELS, Math.floor(Math.log2(radius * 3)) + 1));
+          const auraWeight = 0.4;
+          mipChainUpsample(auraLevels, auraWeight);
 
           const auraOpacity = amount * auraAmount * 0.7;
           device.queue.writeBuffer(auraBlendUB, 0, new Float32Array([auraOpacity, hue, sat, 0]));
