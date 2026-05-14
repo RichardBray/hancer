@@ -4,6 +4,7 @@ import { useInitialFile } from "./hooks/useInitialFile";
 import { useLooks } from "./hooks/useLooks";
 import { useResizable } from "./hooks/useResizable";
 import { useHistory } from "./hooks/useHistory";
+import { useCanvasTransform, ZOOM_LEVELS } from "./hooks/useCanvasTransform";
 import { TopBar } from "./components/TopBar";
 import { LooksPanel } from "./components/LooksPanel";
 import { AdjustmentsPanel } from "./components/AdjustmentsPanel";
@@ -71,6 +72,15 @@ export function App() {
   const [viewMode, setViewMode] = useState<ViewMode>("normal");
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [splitPosition, setSplitPosition] = useState(0.5);
+  const canvasTransform = useCanvasTransform();
+
+  const handleViewModeChange = useCallback((m: ViewMode) => {
+    setViewMode(m);
+    if (m !== "normal") {
+      canvasTransform.setZoom("fit");
+      canvasTransform.setPanMode(false);
+    }
+  }, [canvasTransform.setZoom, canvasTransform.setPanMode]);
   const [canvasRect, setCanvasRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
   const hoverParamsRef = useRef<PreviewParams | null>(null);
 
@@ -94,6 +104,8 @@ export function App() {
     setReferenceImage(null);
     setViewMode("normal");
     setSplitPosition(0.5);
+    canvasTransform.setZoom("fit");
+    canvasTransform.setPanMode(false);
   }, [objectUrl]);
 
   useEffect(() => {
@@ -295,8 +307,56 @@ export function App() {
     setTimeout(() => setAnimating(false), 350);
   }, [restoreActiveLook]);
 
-  // Cmd/Ctrl+Z — undo. Shift adds redo. Skip when a text field is focused
-  // so native text-input undo keeps working inside modals.
+  const spacebarPanRef = useRef(false);
+  useEffect(() => {
+    if (viewMode !== "normal") return;
+    function isTextField(e: KeyboardEvent) {
+      const t = e.target as HTMLElement | null;
+      return t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      if (isTextField(e)) return;
+      if (e.key === " " && !e.repeat) {
+        e.preventDefault();
+        spacebarPanRef.current = true;
+        canvasTransform.setPanMode(true);
+      }
+      if (e.key.toLowerCase() === "h") {
+        canvasTransform.setPanMode(!canvasTransform.panMode);
+      }
+    }
+    function onKeyUp(e: KeyboardEvent) {
+      if (e.key === " " && spacebarPanRef.current) {
+        spacebarPanRef.current = false;
+        canvasTransform.setPanMode(false);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    return () => { window.removeEventListener("keydown", onKeyDown); window.removeEventListener("keyup", onKeyUp); };
+  }, [viewMode, canvasTransform.panMode, canvasTransform.setPanMode]);
+
+  useEffect(() => {
+    if (viewMode !== "normal") return;
+    function onWheel(e: WheelEvent) {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      const current = canvasTransform.zoom;
+      const currentNum = current === "fit" ? 100 : current;
+      const idx = ZOOM_LEVELS.indexOf(currentNum as (typeof ZOOM_LEVELS)[number]);
+      if (e.deltaY < 0) {
+        const next = idx === -1 ? ZOOM_LEVELS.find(z => z > currentNum) : ZOOM_LEVELS[idx + 1];
+        if (next) canvasTransform.setZoom(next);
+      } else {
+        const prev = idx === -1 ? [...ZOOM_LEVELS].reverse().find(z => z < currentNum) : ZOOM_LEVELS[idx - 1];
+        if (prev) canvasTransform.setZoom(prev);
+        else canvasTransform.setZoom("fit");
+      }
+    }
+    window.addEventListener("wheel", onWheel, { passive: false });
+    return () => window.removeEventListener("wheel", onWheel);
+  }, [viewMode, canvasTransform.zoom, canvasTransform.setZoom]);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const mod = e.metaKey || e.ctrlKey;
@@ -390,18 +450,22 @@ export function App() {
         <ResizeDivider direction="horizontal" onMouseDown={leftPanel.onMouseDown} />
 
         {/* Center — Canvas */}
-        <div className="flex-1 flex items-center justify-center p-4 min-w-0 relative">
+        <div className="flex-1 flex items-center justify-center p-4 min-w-0 relative overflow-hidden">
           {file && (
             <>
               <ViewModeToolbar
                 mode={viewMode}
-                onChange={setViewMode}
+                onChange={handleViewModeChange}
                 splitDisabled={!file}
                 referenceDisabled={false}
                 canUndo={history.canUndo}
                 canRedo={history.canRedo}
                 onUndo={() => applySnapshot(historyRef.current.undo())}
                 onRedo={() => applySnapshot(historyRef.current.redo())}
+                zoom={canvasTransform.zoom}
+                onZoomChange={canvasTransform.setZoom}
+                panMode={canvasTransform.panMode}
+                onPanModeChange={canvasTransform.setPanMode}
               />
             </>
           )}
@@ -460,6 +524,13 @@ export function App() {
               onCanvasReady={handleCanvasReady}
               onVideoReady={handleVideoReady}
               onError={setPreviewError}
+              zoom={canvasTransform.zoom}
+              pan={canvasTransform.pan}
+              isPanning={canvasTransform.isPanning}
+              panMode={canvasTransform.panMode}
+              onPanMouseDown={canvasTransform.onMouseDown}
+              onPanMouseMove={canvasTransform.onMouseMove}
+              onPanMouseUp={canvasTransform.onMouseUp}
             />
           )}
         </div>

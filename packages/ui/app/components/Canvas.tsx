@@ -1,6 +1,7 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, type MouseEvent } from "react";
 import { createRenderer, type Renderer, type PreviewParams } from "../gpu/renderer";
 import { fitPreviewSize } from "../mediaSizing";
+import type { ZoomLevel } from "../hooks/useCanvasTransform";
 
 interface Props {
   src: string;
@@ -10,9 +11,16 @@ interface Props {
   onCanvasReady?: (canvas: HTMLCanvasElement) => void;
   onVideoReady?: (video: HTMLVideoElement) => void;
   onError?: (err: Error) => void;
+  zoom?: ZoomLevel;
+  pan?: { x: number; y: number };
+  isPanning?: boolean;
+  panMode?: boolean;
+  onPanMouseDown?: (e: MouseEvent) => void;
+  onPanMouseMove?: (e: MouseEvent) => void;
+  onPanMouseUp?: () => void;
 }
 
-export function Canvas({ src, isVideo, params, onRendererReady, onCanvasReady, onVideoReady, onError }: Props) {
+export function Canvas({ src, isVideo, params, onRendererReady, onCanvasReady, onVideoReady, onError, zoom = "fit", pan = { x: 0, y: 0 }, isPanning = false, panMode = false, onPanMouseDown, onPanMouseMove, onPanMouseUp }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -134,8 +142,21 @@ export function Canvas({ src, isVideo, params, onRendererReady, onCanvasReady, o
     }
   }, [params, isVideo]);
 
+  const scale = zoom === "fit" ? undefined : zoom / 100;
+  const hasTransform = scale !== undefined;
+  const transformStyle = hasTransform
+    ? { transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`, transformOrigin: "center center" }
+    : undefined;
+
   return (
-    <div className="relative flex-1 flex items-center justify-center flex-col">
+    <div
+      className="relative flex-1 flex items-center justify-center flex-col"
+      style={panMode ? { cursor: isPanning ? "grabbing" : "grab" } : undefined}
+      onMouseDown={onPanMouseDown}
+      onMouseMove={onPanMouseMove}
+      onMouseUp={onPanMouseUp}
+      onMouseLeave={onPanMouseUp}
+    >
       {isVideo && (
         <video
           ref={videoRef}
@@ -155,7 +176,8 @@ export function Canvas({ src, isVideo, params, onRendererReady, onCanvasReady, o
       )}
       <canvas
         ref={canvasRef}
-        className="max-w-full max-h-[calc(100vh-140px)]"
+        className={hasTransform ? "" : "max-w-full max-h-[calc(100vh-140px)]"}
+        style={transformStyle}
       />
     </div>
   );
