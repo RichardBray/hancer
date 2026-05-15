@@ -3,6 +3,7 @@ import { probe, applyPreset, resolveExportPreset } from "@hance/core";
 import type { PresetData, FilmOptions } from "@hance/core";
 import { runGpuExport } from "./pipeline";
 import { parseEffectFlags, EFFECT_HELP_TEXT } from "./effect-flags";
+import { loadConfig, configToArgv } from "./config";
 import path from "node:path";
 
 declare const HANCE_VERSION: string | undefined;
@@ -24,6 +25,9 @@ hance <input> [<input> ...] [options]
   --preset     <name>       Load a preset file (default: "default")
 
 ${EFFECT_HELP_TEXT}
+
+  Config:
+  --no-config               Ignore config file
 
   General:
   --help, -h                Show this help
@@ -80,7 +84,19 @@ interface ParsedArgs extends FilmOptions {
 }
 
 export function parseArgs(argv: string[]): ParsedArgs {
-  const r = parseEffectFlags(argv);
+  const noConfig = argv.includes("--no-config");
+  const filteredArgv = noConfig ? argv.filter(a => a !== "--no-config") : argv;
+
+  let mergedArgv: string[];
+  if (noConfig) {
+    mergedArgv = filteredArgv;
+  } else {
+    const { config } = loadConfig();
+    const configArgv = configToArgv(config);
+    mergedArgv = [...configArgv, ...filteredArgv];
+  }
+
+  const r = parseEffectFlags(mergedArgv);
   const inputs = r.positional;
 
   if (!r.help && inputs.length === 0) {

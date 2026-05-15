@@ -129,6 +129,25 @@ Hance ships with a handful of built-in presets (see `presets/*.hlook`). Pass `--
 
 Run `hance --help` for the full list of effect flags (color, halation, bloom, grain, vignette, split-tone, camera-shake, aberration, etc.). Every effect group also has a `--no-<effect>` switch to disable it.
 
+### Config file
+
+Create a `.hancerc.json` in your project directory to set default flags so you don't have to repeat them:
+
+```json
+{
+  "codec": "prores",
+  "crf": 12,
+  "preset": "cinematic",
+  "grain-amount": 0.2
+}
+```
+
+Keys are the same as CLI flags without the `--` prefix. CLI flags always override config values.
+
+Hance searches for `.hancerc.json` starting from the current directory and walking up to the filesystem root. If no local config is found, it falls back to `~/.config/hance/config.json` as a global default.
+
+Use `--no-config` to ignore config files for a single run.
+
 ### Interactive UI
 
 ```bash
