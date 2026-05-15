@@ -83,7 +83,7 @@ interface ParsedArgs extends FilmOptions {
   outputArg: string;
 }
 
-export function parseArgs(argv: string[]): ParsedArgs {
+export async function parseArgs(argv: string[]): Promise<ParsedArgs> {
   const noConfig = argv.includes("--no-config");
   const filteredArgv = noConfig ? argv.filter(a => a !== "--no-config") : argv;
 
@@ -91,7 +91,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
   if (noConfig) {
     mergedArgv = filteredArgv;
   } else {
-    const { config } = loadConfig();
+    const { config } = await loadConfig();
     const configArgv = configToArgv(config);
     mergedArgv = [...configArgv, ...filteredArgv];
   }
@@ -190,7 +190,7 @@ async function main() {
 
   let parsed: ParsedArgs;
   try {
-    parsed = parseArgs(args);
+    parsed = await parseArgs(args);
   } catch (err) {
     console.error(`Error: ${(err as Error).message}`);
     process.exit(1);

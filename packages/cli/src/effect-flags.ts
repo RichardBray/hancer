@@ -71,12 +71,14 @@ const KNOWN_FLAGS = new Set([
   "--split-tone-mode", "--split-tone-protect-neutrals", "--split-tone-amount",
   "--split-tone-hue", "--split-tone-pivot", "--no-split-tone",
   "--camera-shake-amount", "--camera-shake-rate", "--no-camera-shake",
+  "--no-config",
   "--help", "-h",
 ]);
 
 const BOOLEAN_FLAGS = new Set([
   "--no-color-settings", "--no-halation", "--no-aberration", "--no-bloom",
   "--no-grain", "--no-vignette", "--no-split-tone", "--no-camera-shake",
+  "--no-config",
   "--halation-highlights-only", "--split-tone-protect-neutrals",
 ]);
 

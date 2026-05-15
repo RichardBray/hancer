@@ -5,7 +5,7 @@ import { homedir } from "node:os";
 const LOCAL_CONFIG_NAME = ".hancerc.json";
 const GLOBAL_CONFIG_PATH = path.join(homedir(), ".config", "hance", "config.json");
 
-function findLocalConfig(startDir: string): string | null {
+export function findLocalConfig(startDir: string): string | null {
   let dir = startDir;
   while (true) {
     const candidate = path.join(dir, LOCAL_CONFIG_NAME);
@@ -20,13 +20,13 @@ export interface HanceConfig {
   [key: string]: string | number | boolean;
 }
 
-export function loadConfig(): { config: HanceConfig; source: string | null } {
-  const localPath = findLocalConfig(process.cwd());
+export async function loadConfig(startDir = process.cwd()): Promise<{ config: HanceConfig; source: string | null }> {
+  const localPath = findLocalConfig(startDir);
 
   for (const configPath of [localPath, GLOBAL_CONFIG_PATH]) {
     if (configPath && existsSync(configPath)) {
       try {
-        const raw = require(configPath);
+        const raw = await Bun.file(configPath).json();
         if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
           console.warn(`Warning: ignoring invalid config at ${configPath}`);
           continue;

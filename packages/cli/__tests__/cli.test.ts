@@ -10,64 +10,64 @@ describe("resolveSubcommand", () => {
 });
 
 describe("parseArgs", () => {
-  it("parses input file as first positional arg", () => {
-    const result = parseArgs(["input.mp4"]);
+  it("parses input file as first positional arg", async () => {
+    const result = await parseArgs(["input.mp4"]);
     expect(result.inputs).toEqual(["input.mp4"]);
   });
 
-  it("parses --output flag", () => {
-    const result = parseArgs(["input.mp4", "--output", "out.mp4"]);
+  it("parses --output flag", async () => {
+    const result = await parseArgs(["input.mp4", "--output", "out.mp4"]);
     expect(result.outputs).toEqual(["out.mp4"]);
   });
 
-  it("parses -o shorthand", () => {
-    const result = parseArgs(["input.mp4", "-o", "out.mp4"]);
+  it("parses -o shorthand", async () => {
+    const result = await parseArgs(["input.mp4", "-o", "out.mp4"]);
     expect(result.outputs).toEqual(["out.mp4"]);
   });
 
-  it("collects multiple positional args as inputs", () => {
-    const result = parseArgs(["a.mov", "b.mov", "c.mov"]);
+  it("collects multiple positional args as inputs", async () => {
+    const result = await parseArgs(["a.mov", "b.mov", "c.mov"]);
     expect(result.inputs).toEqual(["a.mov", "b.mov", "c.mov"]);
   });
 
-  it("defaults outputs to <stem>_hanced<ext> next to each input when -o omitted", () => {
-    const result = parseArgs(["a.mov", "b.mov"]);
+  it("defaults outputs to <stem>_hanced<ext> next to each input when -o omitted", async () => {
+    const result = await parseArgs(["a.mov", "b.mov"]);
     expect(result.outputs).toEqual(["a_hanced.mov", "b_hanced.mov"]);
   });
 
-  it("treats -o as output directory when multiple inputs given", () => {
-    const result = parseArgs(["dir/a.mov", "dir/b.mov", "-o", "./out"]);
+  it("treats -o as output directory when multiple inputs given", async () => {
+    const result = await parseArgs(["dir/a.mov", "dir/b.mov", "-o", "./out"]);
     expect(result.outputs).toEqual(["out/a_hanced.mov", "out/b_hanced.mov"]);
   });
 
-  it("keeps -o as file path with a single input", () => {
-    const result = parseArgs(["a.mov", "-o", "custom.mp4"]);
+  it("keeps -o as file path with a single input", async () => {
+    const result = await parseArgs(["a.mov", "-o", "custom.mp4"]);
     expect(result.outputs).toEqual(["custom.mp4"]);
   });
 
-  it("parses color settings flags", () => {
-    const result = parseArgs(["input.mp4", "--exposure", "0.12", "--contrast", "1.2"]);
+  it("parses color settings flags", async () => {
+    const result = await parseArgs(["input.mp4", "--exposure", "0.12", "--contrast", "1.2"]);
     expect(result.colorSettings.exposure).toBe(0.12);
     expect(result.colorSettings.contrast).toBe(1.2);
   });
 
-  it("parses halation flags with new names", () => {
-    const result = parseArgs(["input.mp4", "--halation-amount", "0.5"]);
+  it("parses halation flags with new names", async () => {
+    const result = await parseArgs(["input.mp4", "--halation-amount", "0.5"]);
     expect(result.halation.amount).toBe(0.5);
   });
 
-  it("parses --no-halation to disable", () => {
-    const result = parseArgs(["input.mp4", "--no-halation"]);
+  it("parses --no-halation to disable", async () => {
+    const result = await parseArgs(["input.mp4", "--no-halation"]);
     expect(result.halation.enabled).toBe(false);
   });
 
-  it("parses --blend for global blend", () => {
-    const result = parseArgs(["input.mp4", "--blend", "0.5"]);
+  it("parses --blend for global blend", async () => {
+    const result = await parseArgs(["input.mp4", "--blend", "0.5"]);
     expect(result.blend).toBe(0.5);
   });
 
-  it("parses new effect flags", () => {
-    const result = parseArgs([
+  it("parses new effect flags", async () => {
+    const result = await parseArgs([
       "input.mp4",
       "--bloom-amount", "0.3",
       "--grain-amount", "0.2",
@@ -78,75 +78,75 @@ describe("parseArgs", () => {
     expect(result.vignette.amount).toBe(0.4);
   });
 
-  it("parses --preset to load a named preset", () => {
-    const result = parseArgs(["input.mp4", "--preset", "portra-400"]);
+  it("parses --preset to load a named preset", async () => {
+    const result = await parseArgs(["input.mp4", "--preset", "portra-400"]);
     expect(result.halation.amount).toBe(0.2);
   });
 
-  it("CLI flags override preset values", () => {
-    const result = parseArgs(["input.mp4", "--preset", "portra-400", "--aberration", "0.8"]);
+  it("CLI flags override preset values", async () => {
+    const result = await parseArgs(["input.mp4", "--preset", "portra-400", "--aberration", "0.8"]);
     expect(result.aberration.amount).toBe(0.8);
   });
 
-  it("parses --encode-preset for FFmpeg speed", () => {
-    const result = parseArgs(["input.mp4", "--encode-preset", "fast"]);
+  it("parses --encode-preset for FFmpeg speed", async () => {
+    const result = await parseArgs(["input.mp4", "--encode-preset", "fast"]);
     expect(result.encodePreset).toBe("fast");
   });
 
-  it("throws on unknown flag", () => {
-    expect(() => parseArgs(["input.mp4", "--unknown"])).toThrow();
+  it("throws on unknown flag", async () => {
+    expect(parseArgs(["input.mp4", "--unknown"])).rejects.toThrow();
   });
 
-  it("throws on out-of-range value", () => {
-    expect(() => parseArgs(["input.mp4", "--exposure", "10"])).toThrow();
+  it("throws on out-of-range value", async () => {
+    expect(parseArgs(["input.mp4", "--exposure", "10"])).rejects.toThrow();
   });
 
-  it("throws with no input", () => {
-    expect(() => parseArgs([])).toThrow();
+  it("throws with no input", async () => {
+    expect(parseArgs([])).rejects.toThrow();
   });
 
-  it("detects --help flag", () => {
-    const result = parseArgs(["--help"]);
+  it("detects --help flag", async () => {
+    const result = await parseArgs(["--help"]);
     expect(result.help).toBe(true);
   });
 
-  it("parses --export low", () => {
-    const result = parseArgs(["input.mp4", "--export", "low"]);
+  it("parses --export low", async () => {
+    const result = await parseArgs(["input.mp4", "--export", "low"]);
     expect(result.codec).toBe("h264");
     expect(result.crf).toBe(23);
     expect(result.encodePreset).toBe("fast");
   });
 
-  it("parses --export high", () => {
-    const result = parseArgs(["input.mp4", "--export", "high"]);
+  it("parses --export high", async () => {
+    const result = await parseArgs(["input.mp4", "--export", "high"]);
     expect(result.codec).toBe("h265");
     expect(result.crf).toBe(16);
     expect(result.encodePreset).toBe("slow");
     expect(result.pixelFormat).toBe("yuv420p10le");
   });
 
-  it("parses --export medium and returns correct pixelFormat", () => {
-    const result = parseArgs(["input.mp4", "--export", "medium"]);
+  it("parses --export medium and returns correct pixelFormat", async () => {
+    const result = await parseArgs(["input.mp4", "--export", "medium"]);
     expect(result.codec).toBe("h264");
     expect(result.crf).toBe(18);
     expect(result.encodePreset).toBe("medium");
     expect(result.pixelFormat).toBe("yuv420p");
   });
 
-  it("--export with individual override: codec wins", () => {
-    const result = parseArgs(["input.mp4", "--export", "high", "--codec", "h264"]);
+  it("--export with individual override: codec wins", async () => {
+    const result = await parseArgs(["input.mp4", "--export", "high", "--codec", "h264"]);
     expect(result.codec).toBe("h264");
     expect(result.crf).toBe(16);
     expect(result.encodePreset).toBe("slow");
   });
 
-  it("--export with individual override: crf wins", () => {
-    const result = parseArgs(["input.mp4", "--export", "high", "--crf", "20"]);
+  it("--export with individual override: crf wins", async () => {
+    const result = await parseArgs(["input.mp4", "--export", "high", "--crf", "20"]);
     expect(result.crf).toBe(20);
   });
 
-  it("throws on invalid --export value", () => {
-    expect(() => parseArgs(["input.mp4", "--export", "ultra"])).toThrow();
+  it("throws on invalid --export value", async () => {
+    expect(parseArgs(["input.mp4", "--export", "ultra"])).rejects.toThrow();
   });
 });
 
