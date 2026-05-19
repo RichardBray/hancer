@@ -197,4 +197,4 @@ jobs:
       - name: Publish wrapper package
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish npm/hance --access public
+        run: npm publish ./npm/hance --access public
