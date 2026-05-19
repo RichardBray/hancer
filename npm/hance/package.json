@@ -1,0 +1,19 @@
+{
+  "name": "@orva-studio/hance",
+  "version": "0.5.0",
+  "description": "A cinematic film-look engine for video and stills",
+  "license": "FSL-1.1-Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Orva-Studio/hancer"
+  },
+  "bin": {
+    "hance": "bin/hance"
+  },
+  "optionalDependencies": {
+    "@orva-studio/cli-darwin-arm64": "0.5.0",
+    "@orva-studio/cli-darwin-x64": "0.5.0",
+    "@orva-studio/cli-linux-x64": "0.5.0",
+    "@orva-studio/cli-linux-arm64": "0.5.0"
+  }
+}
